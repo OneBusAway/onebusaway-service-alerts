@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns:jsp="http://java.sun.com/JSP/Page"
+    xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:s="/struts-tags"
+    xmlns:oba="/oba-tags">
+<jsp:directive.page contentType="text/html" />
+<head>
+<title>King County Metro Service Alerts</title>
+</head>
+<body>
+
+<h2>King County Metro Service Alerts</h2>
+
+<h3>Unresolved Alerts</h3>
+
+<s:if test="unresolvedAlerts.empty">
+    <p>No unresolved alerts.</p>
+</s:if>
+<s:else>
+    <table class="alertsTable">
+        <thead>
+            <tr>
+                <td>Route</td>
+                <td>Region</td>
+                <td>Description</td>
+                <td>Created</td>
+                <td>Action</td>
+            </tr>
+        </thead>
+        <tbody>
+            <s:iterator value="unresolvedAlerts">
+                <tr>
+                    <td><oba:routeName value="route"/></td>
+                    <td><s:property value="region"/></td>
+                    <td><s:property value="description"/></td>
+                    <td><oba:date timeStyle="short" value="timeOfCreation"/></td>
+                    <td><s:a action="unresolved-alert"><s:param name="id" value="id"/>View</s:a></td>
+                </tr>
+            </s:iterator>
+        </tbody>
+    </table>
+</s:else>
+
+<h3>Resolved Alerts</h3>
+
+<s:if test="resolvedAlerts.empty">
+    <p>No resolved alerts.</p>
+</s:if>
+<s:else>
+    <table class="alertsTable">
+        <thead>
+            <tr>
+                <td>Route</td>
+                <td>Region</td>
+                <td>Description</td>
+                <td>Created</td>
+                <td>Action</td>
+            </tr>
+        </thead>
+        <tbody>
+            <s:iterator value="resolvedAlerts">
+                <tr>
+                    <td><oba:routeName value="route"/></td>
+                    <td><s:property value="region"/></td>
+                    <td><s:property value="description"/></td>
+                    <td><oba:date timeStyle="short" value="timeOfCreation"/></td>
+                    <td><s:a action="resolved-alert"><s:param name="id" value="id"/>View</s:a></td>
+                </tr>
+            </s:iterator>
+        </tbody>
+    </table>
+</s:else>
+
+</body>
+</html>

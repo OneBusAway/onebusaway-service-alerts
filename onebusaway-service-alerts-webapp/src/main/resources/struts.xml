@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC 
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+<struts>
+
+    <constant name="struts.convention.action.suffix" value="Action" />
+    <constant name="struts.convention.action.mapAllMatches" value="true" />
+    <constant name="struts.convention.package.locators.basePackage" value="org.onebusaway.king_county_metro.service_alerts.actions" />
+    <constant name="struts.convention.action.checkImplementsAction" value="false" />
+
+    <constant name="struts.convention.default.parent.package" value="onebusaway-webapp-default" />
+    
+    <bean type="org.apache.struts2.components.template.TemplateEngine" name="jspx" class="org.apache.struts2.components.template.JspTemplateEngine" />
+
+    <package name="onebusaway-webapp-default" extends="struts-default">
+    
+        <result-types>
+          <result-type name="json" class="org.apache.struts2.json.JSONResult"/>
+        </result-types>
+        
+        <interceptors>
+            <interceptor name="cache-control" class="org.onebusaway.presentation.services.cachecontrol.CacheControlInterceptor" />
+            <interceptor name="current-user" class="org.onebusaway.presentation.impl.users.CurrentUserInterceptor" />
+            <interceptor-stack name="onebusaway-webapp-stack">
+                <interceptor-ref name="cache-control"/>
+                <interceptor-ref name="defaultStack">
+                    <param name="modelDriven.refreshModelBeforeResult">true</param>
+                    <param name="validation.validateAnnotatedMethodOnly">true</param>
+                </interceptor-ref>
+                <interceptor-ref name="current-user" />
+            </interceptor-stack>
+        </interceptors>
+
+        <default-interceptor-ref name="onebusaway-webapp-stack" />
+
+        <global-results>
+            <result name="input">/WEB-INF/content/input.jspx</result>            
+        </global-results>
+
+    </package>
+
+</struts>

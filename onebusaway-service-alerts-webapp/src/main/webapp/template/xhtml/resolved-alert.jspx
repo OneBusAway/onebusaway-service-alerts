@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsp:root version="1.2" xmlns:jsp="http://java.sun.com/JSP/Page"
+    xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:s="/struts-tags"
+    xmlns:oba="/oba-tags">
+
+    <jsp:directive.page contentType="text/html" />
+    <s:set var="alert" value="parameters.alert" />
+
+    <div class="resolvedAlert">
+
+    <table class="resolvedAlert">
+        <tr>
+            <td>Id:</td>
+            <td><s:property value="#alert.id" /></td>
+        </tr>
+        <tr>
+            <td>Created:</td>
+            <td><oba:date timeStyle="short"
+                value="#alert.timeOfCreation" /></td>
+        </tr>
+        <tr>
+            <td>Updated:</td>
+            <td><oba:date timeStyle="short"
+                value="#alert.timeOfLastUpdate" /></td>
+        </tr>
+        <tr>
+            <td>Route:</td>
+            <td><oba:routeName value="#alert.route" /> - <oba:routeDescription
+                value="#alert.route" /></td>
+        </tr>
+        <tr>
+            <td>Region:</td>
+            <td><s:property value="#alert.region" /></td>
+        </tr>
+        <tr>
+            <td>Description:</td>
+            <td><s:property value="#alert.description" /></td>
+        </tr>
+    </table>
+
+    <s:iterator value="#alert.configurations">
+        <s:component template="alert-configuration.jspx">
+            <s:param name="alertConfiguration" value="top" />
+        </s:component>
+    </s:iterator>
+    
+    </div>
+
+</jsp:root>
