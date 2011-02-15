@@ -1,12 +1,12 @@
-package org.onebusaway.king_county_metro.service_alerts.actions;
+package org.onebusaway.service_alerts.actions;
 
 import java.util.Collections;
 import java.util.List;
 
-import org.onebusaway.king_county_metro.service_alerts.impl.AlertBeanComparator;
-import org.onebusaway.king_county_metro.service_alerts.model.beans.ResolvedAlertBean;
-import org.onebusaway.king_county_metro.service_alerts.model.beans.UnresolvedAlertBean;
-import org.onebusaway.king_county_metro.service_alerts.services.AlertBeanService;
+import org.onebusaway.service_alerts.impl.AlertBeanComparator;
+import org.onebusaway.service_alerts.model.beans.ResolvedAlertBean;
+import org.onebusaway.service_alerts.model.beans.UnresolvedAlertBean;
+import org.onebusaway.service_alerts.services.AlertBeanService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.ActionSupport;

@@ -1,9 +1,9 @@
-package org.onebusaway.king_county_metro.service_alerts.actions;
+package org.onebusaway.service_alerts.actions;
 
 import org.apache.struts2.convention.annotation.Result;
 import org.apache.struts2.convention.annotation.Results;
-import org.onebusaway.king_county_metro.service_alerts.model.beans.AlertConfigurationBean;
-import org.onebusaway.king_county_metro.service_alerts.services.AlertBeanService;
+import org.onebusaway.service_alerts.model.beans.AlertConfigurationBean;
+import org.onebusaway.service_alerts.services.AlertBeanService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.ActionSupport;

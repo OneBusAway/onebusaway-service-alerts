@@ -1,4 +1,4 @@
-package org.onebusaway.king_county_metro.service_alerts.actions;
+package org.onebusaway.service_alerts.actions;
 
 import org.onebusaway.presentation.services.cachecontrol.CacheControl;
 
