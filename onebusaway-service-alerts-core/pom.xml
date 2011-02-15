@@ -2,15 +2,14 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>onebusaway-king-county-metro</artifactId>
+    <artifactId>onebusaway-service-alerts</artifactId>
     <groupId>org.onebusaway</groupId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <groupId>org.onebusaway</groupId>
-  <artifactId>onebusaway-king-county-metro-service-alerts</artifactId>
+  <artifactId>onebusaway-service-alerts-core</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>onebusaway-king-county-metro-service-alerts</name>
-  <description>King County Metro Service Alerts</description>
+  <name>onebusaway-service-alerts-core</name>
 
   <properties>
     <geotools.version>2.6.4</geotools.version>

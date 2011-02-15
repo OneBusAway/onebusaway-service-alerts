@@ -14,9 +14,9 @@ import java.util.Set;
 
 import org.junit.Test;
 import org.onebusaway.collections.FactoryMap;
-import org.onebusaway.king_county_metro.service_alerts.impl.AlertDownloaderLibrary;
-import org.onebusaway.king_county_metro.service_alerts.model.AlertDescription;
-import org.onebusaway.king_county_metro.service_alerts.model.RouteAndRegionRef;
+import org.onebusaway.service_alerts.impl.AlertDownloaderLibrary;
+import org.onebusaway.service_alerts.model.AlertDescription;
+import org.onebusaway.service_alerts.model.RouteAndRegionRef;
 
 public class RerouteDownloaderLibraryTest {
 
