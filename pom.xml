@@ -44,6 +44,8 @@
   </repositories>
 
   <modules>
+    <module>onebusaway-service-alerts-core</module>
+    <module>onebusaway-service-alerts-webapp</module>
   </modules>
 
   <!-- This is where we control the master dependency version used by all modules -->
