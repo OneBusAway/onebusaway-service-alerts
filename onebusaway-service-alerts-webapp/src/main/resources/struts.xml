@@ -44,5 +44,16 @@
         </global-results>
 
     </package>
+    
+    <package name="onebusaway-siri" namespace="/siri" extends="struts-default">
+        <interceptors>
+            <interceptor-stack name="onebusaway-siri-stack">
+                <interceptor-ref name="exception"/>
+                <interceptor-ref name="servletConfig"/>
+            </interceptor-stack>
+        </interceptors>
+
+        <default-interceptor-ref name="onebusaway-siri-stack" />
+    </package>
 
 </struts>

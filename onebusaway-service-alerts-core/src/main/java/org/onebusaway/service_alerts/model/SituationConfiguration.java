@@ -6,6 +6,8 @@ public class SituationConfiguration {
 
   private String id;
 
+  private long lastUpdate;
+
   private boolean visible;
 
   private SituationBean situation;
@@ -16,6 +18,14 @@ public class SituationConfiguration {
 
   public void setId(String id) {
     this.id = id;
+  }
+
+  public long getLastUpdate() {
+    return lastUpdate;
+  }
+
+  public void setLastUpdate(long lastUpdate) {
+    this.lastUpdate = lastUpdate;
   }
 
   public boolean isVisible() {

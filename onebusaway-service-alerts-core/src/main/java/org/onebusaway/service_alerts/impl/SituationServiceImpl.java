@@ -1,22 +1,49 @@
 package org.onebusaway.service_alerts.impl;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.onebusaway.collections.CollectionsLibrary;
 import org.onebusaway.collections.FunctionalLibrary;
 import org.onebusaway.service_alerts.model.SituationConfiguration;
+import org.onebusaway.service_alerts.services.SiriService;
 import org.onebusaway.service_alerts.services.SituationService;
+import org.onebusaway.siri.core.SiriServer;
+import org.onebusaway.transit_data.model.service_alerts.NaturalLanguageStringBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedStopBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectsBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import uk.org.siri.siri.AffectedStopPointStructure;
+import uk.org.siri.siri.AffectsScopeStructure;
+import uk.org.siri.siri.AffectsScopeStructure.StopPoints;
+import uk.org.siri.siri.DefaultedTextStructure;
+import uk.org.siri.siri.EntryQualifierStructure;
+import uk.org.siri.siri.PtSituationElementStructure;
+import uk.org.siri.siri.ServiceDelivery;
+import uk.org.siri.siri.SituationExchangeDeliveryStructure;
+import uk.org.siri.siri.SituationVersion;
+import uk.org.siri.siri.SituationExchangeDeliveryStructure.Situations;
+import uk.org.siri.siri.StopPointRefStructure;
+import uk.org.siri.siri.WorkflowStatusEnumeration;
 
 @Component
 class SituationServiceImpl implements SituationService {
 
+  private SiriService _sirivService;
+
   private Map<String, SituationConfiguration> _situationsById = new HashMap<String, SituationConfiguration>();
+
+  @Autowired
+  public void setSiriService(SiriService siriService) {
+    _sirivService = siriService;
+  }
 
   @Override
   public SituationConfiguration createSituation() {
@@ -26,6 +53,7 @@ class SituationServiceImpl implements SituationService {
     long t = System.currentTimeMillis();
     String id = Long.toString(t);
     configuration.setId(id);
+    configuration.setLastUpdate(t);
     configuration.setVisible(false);
 
     SituationBean situation = new SituationBean();
@@ -74,6 +102,8 @@ class SituationServiceImpl implements SituationService {
     model.setPersonnelReason(situation.getPersonnelReason());
     model.setUndefinedReason(situation.getUndefinedReason());
 
+    handleUpdate(config);
+
     return config;
   }
 
@@ -85,6 +115,7 @@ class SituationServiceImpl implements SituationService {
 
     if (config.isVisible() != visible) {
       config.setVisible(visible);
+      handleUpdate(config, !visible);
     }
 
     return config;
@@ -117,13 +148,16 @@ class SituationServiceImpl implements SituationService {
         match = new SituationAffectedStopBean();
         match.setStopId(stopId);
         stops.add(match);
+        handleUpdate(config);
       }
     } else {
       if (stops != null) {
 
         List<SituationAffectedStopBean> matches = FunctionalLibrary.filter(
             stops, "stopId", stopId);
-        stops.removeAll(matches);
+
+        if (stops.removeAll(matches))
+          handleUpdate(config);
       }
     }
 
@@ -142,6 +176,106 @@ class SituationServiceImpl implements SituationService {
       situation.setAffects(affects);
     }
     return affects;
+  }
+
+  private void handleUpdate(SituationConfiguration config) {
+    handleUpdate(config, config.isVisible());
+  }
+
+  private void handleUpdate(SituationConfiguration config,
+      boolean previousVisibility) {
+
+    config.setLastUpdate(System.currentTimeMillis());
+
+    /**
+     * If we're visible or we were visible and now we're not, publish
+     */
+    if (config.isVisible() || previousVisibility) {
+      PtSituationElementStructure ptSituation = constructSiriSituation(config);
+      publishPtSituation(ptSituation);
+    }
+  }
+
+  private PtSituationElementStructure constructSiriSituation(
+      SituationConfiguration config) {
+
+    SituationBean situation = config.getSituation();
+
+    PtSituationElementStructure ptSituation = new PtSituationElementStructure();
+
+    ptSituation.setCreationTime(new Date(situation.getCreationTime()));
+    
+    WorkflowStatusEnumeration progress = config.isVisible() ? WorkflowStatusEnumeration.OPEN : WorkflowStatusEnumeration.CLOSED;
+    ptSituation.setProgress(progress);
+
+    EntryQualifierStructure situationId = new EntryQualifierStructure();
+    situationId.setValue(situation.getId());
+    ptSituation.setSituationNumber(situationId);
+
+    long lastUpdate = config.getLastUpdate();
+    SituationVersion version = new SituationVersion();
+    version.setValue(BigInteger.valueOf(lastUpdate));
+    ptSituation.setVersion(version);
+    ptSituation.setVersionedAtTime(new Date(lastUpdate));
+
+    ptSituation.setAdvice(text(situation.getAdvice()));
+    ptSituation.setDescription(text(situation.getDescription()));
+    ptSituation.setDetail(text(situation.getDetail()));
+    ptSituation.setInternal(text(situation.getInternal()));
+    ptSituation.setSummary(text(situation.getSummary()));
+
+    SituationAffectsBean affects = situation.getAffects();
+
+    if (affects != null) {
+      AffectsScopeStructure sAffects = new AffectsScopeStructure();
+      ptSituation.setAffects(sAffects);
+
+      /**
+       * Affected Stops?
+       */
+      if (!CollectionsLibrary.isEmpty(affects.getStops())) {
+
+        StopPoints stopPoints = new StopPoints();
+        sAffects.setStopPoints(stopPoints);
+
+        for (SituationAffectedStopBean affectedStop : affects.getStops()) {
+          AffectedStopPointStructure sAffectedStopPoint = new AffectedStopPointStructure();
+          StopPointRefStructure stopPointRef = new StopPointRefStructure();
+          stopPointRef.setValue(affectedStop.getStopId());
+          sAffectedStopPoint.setStopPointRef(stopPointRef);
+          stopPoints.getAffectedStopPoint().add(sAffectedStopPoint);
+        }
+      }
+    }
+
+    return ptSituation;
+  }
+
+  private void publishPtSituation(PtSituationElementStructure ptSituation) {
+    Situations situations = new Situations();
+    situations.getPtSituationElement().add(ptSituation);
+
+    SituationExchangeDeliveryStructure situationExchangeDelivery = new SituationExchangeDeliveryStructure();
+    situationExchangeDelivery.setSituations(situations);
+
+    ServiceDelivery serviceDelivery = new ServiceDelivery();
+    List<SituationExchangeDeliveryStructure> situationExchangeDeliveries = serviceDelivery.getSituationExchangeDelivery();
+    situationExchangeDeliveries.add(situationExchangeDelivery);
+
+    SiriServer server = _sirivService.getServer();
+    server.publish(serviceDelivery);
+  }
+
+  private DefaultedTextStructure text(NaturalLanguageStringBean nls) {
+
+    if (nls == null)
+      return null;
+
+    DefaultedTextStructure text = new DefaultedTextStructure();
+    text.setLang(nls.getLang());
+    text.setValue(nls.getValue());
+    return text;
+
   }
 
 }

@@ -95,7 +95,7 @@ var oba_service_alerts_situation = function(data) {
 			title: 'Select Stops',
 			modal: true,
 			width: '90%',
-			height: 500
+			height: 700
 		};
 		
 		content.dialog(dialogOptions);

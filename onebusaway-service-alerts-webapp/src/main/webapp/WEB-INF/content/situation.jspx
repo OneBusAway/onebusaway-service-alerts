@@ -102,7 +102,7 @@ jQuery(document).ready(function() {
       <p><a href="javascript:void(0)">Add affected stop</a></p>
     </div>
     <div class="removeStop">
-        <p>This stop is included in the affected stop list.</p>
+        <p>This stop is included.</p>
         <p><a href="javascript:void(0)">Remove affected stop</a></p>
     </div>
   </s:param>

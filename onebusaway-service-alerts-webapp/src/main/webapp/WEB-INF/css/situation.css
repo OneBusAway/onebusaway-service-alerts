@@ -3,6 +3,9 @@
 	background-color: white;
 }
 
+.ui-widget-content {
+	background: #ffffff;
+}
 .stopSelectionDialog {
 	height: 400px;
 	width: 400px;	
