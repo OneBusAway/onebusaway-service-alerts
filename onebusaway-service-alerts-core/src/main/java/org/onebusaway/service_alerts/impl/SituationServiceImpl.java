@@ -25,6 +25,10 @@ import uk.org.siri.siri.AffectsScopeStructure;
 import uk.org.siri.siri.AffectsScopeStructure.StopPoints;
 import uk.org.siri.siri.DefaultedTextStructure;
 import uk.org.siri.siri.EntryQualifierStructure;
+import uk.org.siri.siri.EnvironmentReasonEnumeration;
+import uk.org.siri.siri.EquipmentReasonEnumeration;
+import uk.org.siri.siri.MiscellaneousReasonEnumeration;
+import uk.org.siri.siri.PersonnelReasonEnumeration;
 import uk.org.siri.siri.PtSituationElementStructure;
 import uk.org.siri.siri.ServiceDelivery;
 import uk.org.siri.siri.SituationExchangeDeliveryStructure;
@@ -204,8 +208,9 @@ class SituationServiceImpl implements SituationService {
     PtSituationElementStructure ptSituation = new PtSituationElementStructure();
 
     ptSituation.setCreationTime(new Date(situation.getCreationTime()));
-    
-    WorkflowStatusEnumeration progress = config.isVisible() ? WorkflowStatusEnumeration.OPEN : WorkflowStatusEnumeration.CLOSED;
+
+    WorkflowStatusEnumeration progress = config.isVisible()
+        ? WorkflowStatusEnumeration.OPEN : WorkflowStatusEnumeration.CLOSED;
     ptSituation.setProgress(progress);
 
     EntryQualifierStructure situationId = new EntryQualifierStructure();
@@ -223,6 +228,24 @@ class SituationServiceImpl implements SituationService {
     ptSituation.setDetail(text(situation.getDetail()));
     ptSituation.setInternal(text(situation.getInternal()));
     ptSituation.setSummary(text(situation.getSummary()));
+
+    String envReason = situation.getEnvironmentReason();
+    if (envReason != null)
+      ptSituation.setEnvironmentReason(EnvironmentReasonEnumeration.fromValue(envReason));
+
+    String equipReason = situation.getEquipmentReason();
+    if (equipReason != null)
+      ptSituation.setEquipmentReason(EquipmentReasonEnumeration.fromValue(equipReason));
+
+    String miscReason = situation.getMiscellaneousReason();
+    if (miscReason != null)
+      ptSituation.setMiscellaneousReason(MiscellaneousReasonEnumeration.fromValue(miscReason));
+
+    String personReason = situation.getPersonnelReason();
+    if (personReason != null)
+      ptSituation.setPersonnelReason(PersonnelReasonEnumeration.fromValue(personReason));
+
+    ptSituation.setUndefinedReason(situation.getUndefinedReason());
 
     SituationAffectsBean affects = situation.getAffects();
 
@@ -275,7 +298,16 @@ class SituationServiceImpl implements SituationService {
     text.setLang(nls.getLang());
     text.setValue(nls.getValue());
     return text;
-
   }
 
+  private <T extends Enum<T>> T match(T[] values, String label) {
+    if (label == null)
+      return null;
+    for (T value : values) {
+      String name = value.name();
+      if (name.equals(label))
+        return value;
+    }
+    return null;
+  }
 }
