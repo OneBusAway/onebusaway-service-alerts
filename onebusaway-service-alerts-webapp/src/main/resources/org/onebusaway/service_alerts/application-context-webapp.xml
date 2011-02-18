@@ -50,9 +50,13 @@
     <property name="name" value="AlertResources" />
     <property name="resources">
       <list>
-        <value>/WEB-INF/js/jquery.js</value>
+        <value>/js/jquery-1.4.4.min.js</value>
+        <value>/js/jquery-ui-1.8.9.custom.min.js</value>
         <value>classpath:org/onebusaway/presentation/js/oba-api.js</value>
+        <value>classpath:org/onebusaway/presentation/js/oba-common.js</value>
+        <value>classpath:org/onebusaway/presentation/js/oba-l10n.js</value>
         <value>classpath:org/onebusaway/presentation/js/oba-maps.js</value>
+        <value>classpath:org/onebusaway/presentation/js/oba-presentation.js</value>
         <value>collection:Map=classpath:org/onebusaway/presentation/resources/map/*.png</value>
         <value>/WEB-INF/js/alerts.js</value>
       </list>

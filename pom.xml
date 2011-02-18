@@ -15,7 +15,9 @@
   <packaging>pom</packaging>
 
   <properties>
-    <onebusaway.version>0.0.1-SNAPSHOT</onebusaway.version>
+    <onebusaway-version>0.2.0-SNAPSHOT</onebusaway-version>
+    <onebusaway-collections-version>1.0.5-SNAPSHOT</onebusaway-collections-version>
+    <onebusaway-siri-version>0.0.3-SNAPSHOT</onebusaway-siri-version>
     <spring-version>3.0.3.RELEASE</spring-version>
     <struts-version>2.1.8.1</struts-version>
   </properties>
@@ -53,13 +55,34 @@
     <dependencies>
       <dependency>
         <groupId>org.onebusaway</groupId>
+        <artifactId>onebusaway-collections</artifactId>
+        <version>${onebusaway-collections-version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.onebusaway</groupId>
+        <artifactId>onebusaway-api-core</artifactId>
+        <version>${onebusaway-version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.onebusaway</groupId>
         <artifactId>onebusaway-users</artifactId>
-        <version>${onebusaway.version}</version>
+        <version>${onebusaway-version}</version>
       </dependency>
       <dependency>
         <groupId>org.onebusaway</groupId>
         <artifactId>onebusaway-presentation</artifactId>
-        <version>${onebusaway.version}</version>
+        <version>${onebusaway-version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.onebusaway</groupId>
+        <artifactId>onebusaway-transit-data</artifactId>
+        <version>${onebusaway-version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.onebusaway</groupId>
+        <artifactId>onebusaway-siri-core</artifactId>
+        <version>${onebusaway-siri-version}</version>
       </dependency>
 
       <dependency>

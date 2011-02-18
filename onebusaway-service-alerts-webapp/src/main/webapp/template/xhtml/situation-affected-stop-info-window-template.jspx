@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsp:root version="1.2" xmlns:jsp="http://java.sun.com/JSP/Page"
+    xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:s="/struts-tags"
+    xmlns:oba="/oba-tags">
+
+    <jsp:directive.page contentType="text/html" />
+<div class="SituationAffectedStopInfoWindowTemplate">
+<div class="stopName"><jsp:text></jsp:text></div>
+<div class="stopDetails"><span><jsp:text></jsp:text></div>
+</div>
+</jsp:root>

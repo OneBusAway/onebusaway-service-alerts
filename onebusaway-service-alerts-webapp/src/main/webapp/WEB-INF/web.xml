@@ -12,7 +12,7 @@
         <param-name>contextConfigLocation</param-name>
         <param-value>
             classpath:data-sources.xml
-            classpath:org/onebusaway/king_county_metro/service_alerts/snow/application-context-webapp.xml
+            classpath:org/onebusaway/service_alerts/application-context-webapp.xml
         </param-value>
     </context-param>
 
@@ -85,7 +85,7 @@
         <servlet-class>org.onebusaway.presentation.impl.ProxyServlet</servlet-class>
         <init-param>
             <param-name>source</param-name>
-            <param-value>/onebusaway-king-county-metro-service-alerts-webapp</param-value>
+            <param-value>/onebusaway-service-alerts-webapp</param-value>
         </init-param>
         <init-param>
             <param-name>target</param-name>

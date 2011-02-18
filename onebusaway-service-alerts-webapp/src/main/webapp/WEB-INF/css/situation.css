@@ -1,0 +1,43 @@
+.ui-dialog {
+	border: 2px solid black;
+	background-color: white;
+}
+
+.stopSelectionDialog {
+	height: 400px;
+	width: 400px;	
+}
+
+#serviceAlertTitle {
+  margin-bottom: 0;	
+}
+
+#serviceAlertSubtitle {
+	font-weight: bold;
+	font-size: 0.8em;
+	margin-bottom: 1em;
+}
+
+.visbility {
+	margin-bottom: 1em;
+}
+
+#situationDetailsForm input {
+	width: 200px;
+}
+
+#situationDetailsForm select {
+	width: 200px;
+}
+
+#situationDetailsForm td {
+	padding-bottom: 5px;
+}
+
+.affectedStop {
+	margin-bottom: 1em;	
+}
+
+.affectedStop > .name {
+  font-weight: bold;
+}

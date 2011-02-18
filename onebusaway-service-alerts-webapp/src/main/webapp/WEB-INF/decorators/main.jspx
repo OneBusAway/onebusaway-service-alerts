@@ -43,11 +43,13 @@
 
 </ul>
 
-<a id="headerTitle" href="${pageContext.request.contextPath}/">KCM Service Alerts</a>
+<a id="headerTitle" href="${pageContext.request.contextPath}/">Service Alerts</a>
 
 </div>
 
+<div id="content">
 <decorator:body />
+</div>
   
 </div>
 </div>

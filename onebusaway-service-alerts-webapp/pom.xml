@@ -21,6 +21,10 @@
     </dependency>
     <dependency>
       <groupId>org.onebusaway</groupId>
+      <artifactId>onebusaway-api-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.onebusaway</groupId>
       <artifactId>onebusaway-presentation</artifactId>
     </dependency>
     <dependency>
