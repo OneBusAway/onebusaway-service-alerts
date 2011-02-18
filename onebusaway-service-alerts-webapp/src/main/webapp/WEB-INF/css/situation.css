@@ -37,6 +37,14 @@
 	padding-bottom: 5px;
 }
 
+.affectedAgency {
+	margin-bottom: 1em;	
+}
+
+.affectedAgency > .name {
+  font-weight: bold;
+}
+
 .affectedStop {
 	margin-bottom: 1em;	
 }

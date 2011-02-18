@@ -19,6 +19,9 @@ public interface SituationService {
       SituationBean situation);
 
   public SituationConfiguration updateVisibility(String id, boolean visible);
+  
+  public SituationConfiguration setAffectedAgencyForSituation(String id,
+      String agencyId, boolean active);
 
   public SituationConfiguration setAffectedStopForSituation(String id,
       String stopId, boolean active);

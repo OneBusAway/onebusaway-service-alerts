@@ -77,7 +77,12 @@ jQuery(document).ready(function() {
 
 <div id="affectedAgencies"><jsp:text></jsp:text></div>
 
-<p><a id="addAffectedAgency">Add an affected agency</a></p>
+<div class="affectedAgencyTemplate" style="display:none">
+<div class="name"><jsp:text></jsp:text></div>
+<div><a href="javascript:void(0)">Remove</a></div>
+</div>
+
+<p><a id="addAffectedAgency" href="javascript:void(0)">Add an affected agency</a></p>
 
 <h4>Stops</h4>
 

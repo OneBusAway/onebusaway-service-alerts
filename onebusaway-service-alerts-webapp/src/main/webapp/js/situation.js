@@ -2,6 +2,7 @@ var OBA = window.OBA || {};
 
 var oba_service_alerts_situation = function(data) {
 	
+	var affectedAgenciesById = {};
 	var affectedStopsById = {};
 	
 	var refreshConfiguration = function(config) {
@@ -11,6 +12,26 @@ var oba_service_alerts_situation = function(data) {
 		var situation = config.situation;
 		
 		var affected = situation.affects || {};
+		
+		/****
+		 * Agencies
+		 ****/
+		
+		var affectedAgencies = affected.agencies || [];
+		
+		var affectedAgenciesElement = jQuery('#affectedAgencies');
+		affectedAgenciesElement.empty();
+		
+		affectedAgenciesById = {};
+		
+		jQuery.each(affectedAgencies, function() {
+			refreshAffectedAgency(affectedAgenciesElement, this);
+		});
+		
+		/****
+		 * Stops
+		 ****/
+		
 		var affectedStops = affected.stops || [];
 		
 		var affectedStopsElement = jQuery('#affectedStops');
@@ -48,6 +69,88 @@ var oba_service_alerts_situation = function(data) {
 	});
 	
 	/****
+	 * Affected Agencies 
+	 ****/
+	
+	var refreshAffectedAgency = function(affectedAgenciesElement, entry) {
+		
+		var agency = entry.agency;
+		
+		var content = jQuery('.affectedAgencyTemplate').clone();
+		content.removeClass('affectedAgencyTemplate');
+		content.addClass('affectedAgency');
+		
+		content.find('.name').text(agency.name);
+		
+		var removeElement = content.find('a');
+		removeElement.click(function() {
+			updateAffectedAgency(agency, false);
+		});
+		
+		content.appendTo(affectedAgenciesElement);
+		content.show();
+		
+		affectedAgenciesById[agency.id] = true;
+	};
+	
+	var updateAffectedAgency = function(agency, enabled) {
+		var url = 'situation!updateAffectedAgency.action';
+		var params = {};
+		params.id = data.id;
+		params.agencyId = agency.id;
+		params.enabled = enabled;
+		jQuery.getJSON(url, params, configRawHandler);
+	};
+	
+	var showAgenciesDialog = function(agenciesWithCoverage) {
+
+		var content = jQuery('<div/>');
+		content.addClass('agencySelectionDialog');
+		
+		var listElement = jQuery('<ul/>');
+		listElement.appendTo(content);
+		
+		jQuery.each(agenciesWithCoverage.list || [], function() {
+			
+			var agency = this.agency;
+			
+			var listItem = jQuery('<li/>');
+			listItem.appendTo(listElement);
+			
+			var anchor = jQuery('<a/>');
+			anchor.attr('href','javascript:void(0)');
+			anchor.text(agency.name);
+			anchor.appendTo(listItem);
+			
+			anchor.click(function() {
+				updateAffectedAgency(agency,true);
+				content.dialog('close');
+			});
+		});
+		
+		var dialogOptions = {
+			title: 'Select an Agency',
+			modal: true,
+			width: '50%'
+		};
+		
+		content.dialog(dialogOptions);
+		
+		return false;
+	};
+
+	var addAffectedAgency = function() {
+		
+		OBA.Api.agenciesWithCoverage(showAgenciesDialog);
+		
+		return false;
+		
+	};
+	
+	jQuery('#addAffectedAgency').click(addAffectedAgency);
+	
+	
+	/****
 	 * Affected Stops
 	 ****/
 	
@@ -71,11 +174,11 @@ var oba_service_alerts_situation = function(data) {
 	};
 	
 	var updateAffectedStop = function(stop, isAdd) {
-		var method = isAdd ? 'addAffectedStop' : 'removeAffectedStop';
-		var url = 'situation!' + method + '.action';
+		var url = 'situation!updateAffectedStop.action';
 		var params = {};
 		params.id = data.id;
 		params.stopId = stop.id;
+		params.enabled = isAdd;
 		jQuery.getJSON(url, params, configRawHandler);
 	};
 	

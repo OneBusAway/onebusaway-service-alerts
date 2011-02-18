@@ -14,6 +14,7 @@ import org.onebusaway.service_alerts.services.SiriService;
 import org.onebusaway.service_alerts.services.SituationService;
 import org.onebusaway.siri.core.SiriServer;
 import org.onebusaway.transit_data.model.service_alerts.NaturalLanguageStringBean;
+import org.onebusaway.transit_data.model.service_alerts.SituationAffectedAgencyBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedStopBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectsBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationBean;
@@ -22,18 +23,21 @@ import org.springframework.stereotype.Component;
 
 import uk.org.siri.siri.AffectedStopPointStructure;
 import uk.org.siri.siri.AffectsScopeStructure;
+import uk.org.siri.siri.AffectsScopeStructure.Operators;
 import uk.org.siri.siri.AffectsScopeStructure.StopPoints;
+import uk.org.siri.siri.AffectedOperatorStructure;
 import uk.org.siri.siri.DefaultedTextStructure;
 import uk.org.siri.siri.EntryQualifierStructure;
 import uk.org.siri.siri.EnvironmentReasonEnumeration;
 import uk.org.siri.siri.EquipmentReasonEnumeration;
 import uk.org.siri.siri.MiscellaneousReasonEnumeration;
+import uk.org.siri.siri.OperatorRefStructure;
 import uk.org.siri.siri.PersonnelReasonEnumeration;
 import uk.org.siri.siri.PtSituationElementStructure;
 import uk.org.siri.siri.ServiceDelivery;
 import uk.org.siri.siri.SituationExchangeDeliveryStructure;
-import uk.org.siri.siri.SituationVersion;
 import uk.org.siri.siri.SituationExchangeDeliveryStructure.Situations;
+import uk.org.siri.siri.SituationVersion;
 import uk.org.siri.siri.StopPointRefStructure;
 import uk.org.siri.siri.WorkflowStatusEnumeration;
 
@@ -120,6 +124,49 @@ class SituationServiceImpl implements SituationService {
     if (config.isVisible() != visible) {
       config.setVisible(visible);
       handleUpdate(config, !visible);
+    }
+
+    return config;
+  }
+
+  @Override
+  public SituationConfiguration setAffectedAgencyForSituation(String id,
+      String agencyId, boolean active) {
+
+    SituationConfiguration config = _situationsById.get(id);
+    if (config == null)
+      return null;
+
+    SituationBean situation = config.getSituation();
+    SituationAffectsBean affects = getAffectsForSituation(situation);
+
+    List<SituationAffectedAgencyBean> agencies = affects.getAgencies();
+
+    if (active) {
+
+      if (agencies == null) {
+        agencies = new ArrayList<SituationAffectedAgencyBean>();
+        affects.setAgencies(agencies);
+      }
+
+      SituationAffectedAgencyBean match = FunctionalLibrary.filterFirst(
+          agencies, "agencyId", agencyId);
+
+      if (match == null) {
+        match = new SituationAffectedAgencyBean();
+        match.setAgencyId(agencyId);
+        agencies.add(match);
+        handleUpdate(config);
+      }
+    } else {
+      if (agencies != null) {
+
+        List<SituationAffectedAgencyBean> matches = FunctionalLibrary.filter(
+            agencies, "agencyId", agencyId);
+
+        if (agencies.removeAll(matches))
+          handleUpdate(config);
+      }
     }
 
     return config;
@@ -252,6 +299,22 @@ class SituationServiceImpl implements SituationService {
     if (affects != null) {
       AffectsScopeStructure sAffects = new AffectsScopeStructure();
       ptSituation.setAffects(sAffects);
+      
+      /**
+       * Affected Agencies?
+       */
+      if( !CollectionsLibrary.isEmpty(affects.getAgencies())) {
+        Operators operators = new Operators();
+        sAffects.setOperators(operators);
+        
+        for( SituationAffectedAgencyBean affectedAgency : affects.getAgencies() ) {
+          AffectedOperatorStructure sAffectedOperator = new AffectedOperatorStructure();
+          OperatorRefStructure operatorRef = new OperatorRefStructure();
+          operatorRef.setValue(affectedAgency.getAgencyId());
+          sAffectedOperator.setOperatorRef(operatorRef);
+          operators.getAffectedOperator().add(sAffectedOperator);
+        }
+      }
 
       /**
        * Affected Stops?
@@ -298,16 +361,5 @@ class SituationServiceImpl implements SituationService {
     text.setLang(nls.getLang());
     text.setValue(nls.getValue());
     return text;
-  }
-
-  private <T extends Enum<T>> T match(T[] values, String label) {
-    if (label == null)
-      return null;
-    for (T value : values) {
-      String name = value.name();
-      if (name.equals(label))
-        return value;
-    }
-    return null;
   }
 }

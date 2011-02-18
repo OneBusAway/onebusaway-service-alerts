@@ -17,8 +17,10 @@ import org.onebusaway.presentation.bundles.service_alerts.PersonnelReasons;
 import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.SituationConfigurationV2Bean;
 import org.onebusaway.service_alerts.services.SituationService;
+import org.onebusaway.transit_data.model.AgencyBean;
 import org.onebusaway.transit_data.model.StopBean;
 import org.onebusaway.transit_data.model.service_alerts.NaturalLanguageStringBean;
+import org.onebusaway.transit_data.model.service_alerts.SituationAffectedAgencyBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedStopBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectsBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationBean;
@@ -53,6 +55,10 @@ public class SituationAction extends ActionSupport implements
 
   private TransitDataService _transitDataService;
 
+  private String _agencyId;
+
+  private boolean _enabled;
+
   @Autowired
   public void setTransitDataService(TransitDataService transitDataService) {
     _transitDataService = transitDataService;
@@ -77,6 +83,18 @@ public class SituationAction extends ActionSupport implements
 
   public String getStopId() {
     return _stopId;
+  }
+
+  public void setAgencyId(String agencyId) {
+    _agencyId = agencyId;
+  }
+
+  public String getAgencyId() {
+    return _agencyId;
+  }
+
+  public void setEnabled(boolean enabled) {
+    _enabled = enabled;
   }
 
   @Override
@@ -153,18 +171,18 @@ public class SituationAction extends ActionSupport implements
     return "delete";
   }
 
-  public String addAffectedStop() {
-    _model = _situationService.setAffectedStopForSituation(_model.getId(),
-        _stopId, true);
+  public String updateAffectedAgency() {
+    _model = _situationService.setAffectedAgencyForSituation(_model.getId(),
+        _agencyId, _enabled);
     if (_model == null)
       return INPUT;
     fillResponse();
     return "json";
   }
 
-  public String removeAffectedStop() {
+  public String updateAffectedStop() {
     _model = _situationService.setAffectedStopForSituation(_model.getId(),
-        _stopId, false);
+        _stopId, _enabled);
     if (_model == null)
       return INPUT;
     fillResponse();
@@ -218,6 +236,15 @@ public class SituationAction extends ActionSupport implements
     SituationAffectsBean affects = situation.getAffects();
 
     if (affects != null) {
+      List<SituationAffectedAgencyBean> agencies = affects.getAgencies();
+      if( agencies != null ) {
+        for( SituationAffectedAgencyBean agency : agencies) {
+          AgencyBean agencyBean = _transitDataService.getAgency(agency.getAgencyId());
+          if( agencyBean != null)
+            factory.addToReferences(agencyBean);
+        }
+      }
+        
       List<SituationAffectedStopBean> stops = affects.getStops();
       if (stops != null) {
         for (SituationAffectedStopBean affectedStop : stops) {
