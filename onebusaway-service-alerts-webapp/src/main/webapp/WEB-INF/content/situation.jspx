@@ -97,7 +97,32 @@ jQuery(document).ready(function() {
 
 <h4>Vehicle Journeys</h4>
 
-<p><a id="addAffectedVehicleJourney">Add an affected vehicle journey</a></p>
+<div id="affectedVehicleJourneys"><jsp:text></jsp:text></div>
+
+<div class="affectedVehicleJourneyTemplate" style="display:none">
+<div class="name"><span class="routeName">Route Name</span><span class="routeDescription"> - Route Description</span></div>
+<div><a href="javascript:void(0)">Remove</a></div>
+</div>
+
+<div class="routeDialogTemplate" style="display:none">
+<h2>Search for a route:</h2>
+<p><input class="routeNameInput" type="text" /> <input class="routeNameSearchButton" type="button" value="Search"/></p>
+<div class="routeSearchResults"><jsp:text></jsp:text></div>
+</div>
+
+<ul style="display: none">
+<li class="routeItemTemplate"><a href="javascript:void(0)">Route Name</a></li>
+</ul>
+
+<div class="routeEntryTemplate" style="display: none">
+<h2>Route Name</h2>
+<p><a href="javascript:void(0)">Add route</a></p>
+<ul>
+    <li class="affectedDirectionTemplate" style="display: none"><span class="name">direction</span> - <a href="javascript:void(0)">Add route and direction</a></li>
+</ul>
+</div>
+
+<p><a id="addAffectedVehicleJourney" href="javascript:void(0)">Add an affected vehicle journey</a></p>
 
 <!-- Templates -->
 <s:component template="oba-stop-selection-widget.ftl"/>

@@ -47,6 +47,10 @@ public class SituationAction extends ActionSupport implements
 
   private String _stopId;
 
+  private String _routeId;
+
+  private String _directionId;
+
   private List<SituationConfiguration> _models;
 
   private SituationConfiguration _model = new SituationConfiguration();
@@ -77,6 +81,14 @@ public class SituationAction extends ActionSupport implements
     return _id;
   }
 
+  public void setAgencyId(String agencyId) {
+    _agencyId = agencyId;
+  }
+
+  public String getAgencyId() {
+    return _agencyId;
+  }
+
   public void setStopId(String stopId) {
     _stopId = stopId;
   }
@@ -85,12 +97,20 @@ public class SituationAction extends ActionSupport implements
     return _stopId;
   }
 
-  public void setAgencyId(String agencyId) {
-    _agencyId = agencyId;
+  public void setRouteId(String routeId) {
+    _routeId = routeId;
   }
 
-  public String getAgencyId() {
-    return _agencyId;
+  public String getRouteId() {
+    return _routeId;
+  }
+
+  public void setDirectionId(String directionId) {
+    _directionId = directionId;
+  }
+
+  public String getDirectionId() {
+    return _directionId;
   }
 
   public void setEnabled(boolean enabled) {
@@ -189,6 +209,15 @@ public class SituationAction extends ActionSupport implements
     return "json";
   }
 
+  public String updateAffectedVehicleJourney() {
+    _model = _situationService.setAffectedVehicleJourneyForSituation(
+        _model.getId(), _routeId, _directionId, _enabled);
+    if (_model == null)
+      return INPUT;
+    fillResponse();
+    return "json";
+  }
+
   /****
    * 
    ****/
@@ -237,14 +266,14 @@ public class SituationAction extends ActionSupport implements
 
     if (affects != null) {
       List<SituationAffectedAgencyBean> agencies = affects.getAgencies();
-      if( agencies != null ) {
-        for( SituationAffectedAgencyBean agency : agencies) {
+      if (agencies != null) {
+        for (SituationAffectedAgencyBean agency : agencies) {
           AgencyBean agencyBean = _transitDataService.getAgency(agency.getAgencyId());
-          if( agencyBean != null)
+          if (agencyBean != null)
             factory.addToReferences(agencyBean);
         }
       }
-        
+
       List<SituationAffectedStopBean> stops = affects.getStops();
       if (stops != null) {
         for (SituationAffectedStopBean affectedStop : stops) {

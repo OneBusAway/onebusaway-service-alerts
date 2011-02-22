@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.onebusaway.collections.CollectionsLibrary;
 import org.onebusaway.collections.FunctionalLibrary;
 import org.onebusaway.service_alerts.model.SituationConfiguration;
@@ -15,21 +16,29 @@ import org.onebusaway.service_alerts.services.SituationService;
 import org.onebusaway.siri.core.SiriServer;
 import org.onebusaway.transit_data.model.service_alerts.NaturalLanguageStringBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedAgencyBean;
+import org.onebusaway.transit_data.model.service_alerts.SituationAffectedCallBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedStopBean;
+import org.onebusaway.transit_data.model.service_alerts.SituationAffectedVehicleJourneyBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectsBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import uk.org.siri.siri.AffectedStopPointStructure;
+import uk.org.siri.siri.AffectedVehicleJourneyStructure;
+import uk.org.siri.siri.AffectedVehicleJourneyStructure.Calls;
 import uk.org.siri.siri.AffectsScopeStructure;
 import uk.org.siri.siri.AffectsScopeStructure.Operators;
 import uk.org.siri.siri.AffectsScopeStructure.StopPoints;
 import uk.org.siri.siri.AffectedOperatorStructure;
+import uk.org.siri.siri.AffectsScopeStructure.VehicleJourneys;
+import uk.org.siri.siri.AffectedCallStructure;
 import uk.org.siri.siri.DefaultedTextStructure;
+import uk.org.siri.siri.DirectionRefStructure;
 import uk.org.siri.siri.EntryQualifierStructure;
 import uk.org.siri.siri.EnvironmentReasonEnumeration;
 import uk.org.siri.siri.EquipmentReasonEnumeration;
+import uk.org.siri.siri.LineRefStructure;
 import uk.org.siri.siri.MiscellaneousReasonEnumeration;
 import uk.org.siri.siri.OperatorRefStructure;
 import uk.org.siri.siri.PersonnelReasonEnumeration;
@@ -215,6 +224,50 @@ class SituationServiceImpl implements SituationService {
     return config;
   }
 
+  @Override
+  public SituationConfiguration setAffectedVehicleJourneyForSituation(
+      String id, String routeId, String directionId, boolean active) {
+
+    SituationConfiguration config = _situationsById.get(id);
+    if (config == null)
+      return null;
+
+    SituationBean situation = config.getSituation();
+    SituationAffectsBean affects = getAffectsForSituation(situation);
+
+    List<SituationAffectedVehicleJourneyBean> vehicleJourneys = affects.getVehicleJourneys();
+
+    if (active) {
+
+      if (vehicleJourneys == null) {
+        vehicleJourneys = new ArrayList<SituationAffectedVehicleJourneyBean>();
+        affects.setVehicleJourneys(vehicleJourneys);
+      }
+
+      SituationAffectedVehicleJourneyBean match = filterFirst(vehicleJourneys,
+          routeId, directionId);
+
+      if (match == null) {
+        match = new SituationAffectedVehicleJourneyBean();
+        match.setLineId(routeId);
+        match.setDirection(directionId);
+        vehicleJourneys.add(match);
+        handleUpdate(config);
+      }
+    } else {
+      if (vehicleJourneys != null) {
+
+        List<SituationAffectedVehicleJourneyBean> matches = filter(
+            vehicleJourneys, routeId, directionId);
+
+        if (vehicleJourneys.removeAll(matches))
+          handleUpdate(config);
+      }
+    }
+
+    return config;
+  }
+
   /****
    * Private Methods
    ****/
@@ -227,6 +280,34 @@ class SituationServiceImpl implements SituationService {
       situation.setAffects(affects);
     }
     return affects;
+  }
+
+  private SituationAffectedVehicleJourneyBean filterFirst(
+      List<SituationAffectedVehicleJourneyBean> vehicleJourneys,
+      String routeId, String directionId) {
+
+    List<SituationAffectedVehicleJourneyBean> matches = filter(vehicleJourneys,
+        routeId, directionId);
+    if (matches.isEmpty())
+      return null;
+    return matches.get(0);
+  }
+
+  private List<SituationAffectedVehicleJourneyBean> filter(
+      List<SituationAffectedVehicleJourneyBean> vehicleJourneys,
+      String routeId, String directionId) {
+
+    List<SituationAffectedVehicleJourneyBean> matches = new ArrayList<SituationAffectedVehicleJourneyBean>();
+
+    for (SituationAffectedVehicleJourneyBean bean : vehicleJourneys) {
+      if (!ObjectUtils.equals(bean.getLineId(), routeId))
+        continue;
+      if (!ObjectUtils.equals(bean.getDirection(), directionId))
+        continue;
+      matches.add(bean);
+    }
+
+    return matches;
   }
 
   private void handleUpdate(SituationConfiguration config) {
@@ -299,15 +380,15 @@ class SituationServiceImpl implements SituationService {
     if (affects != null) {
       AffectsScopeStructure sAffects = new AffectsScopeStructure();
       ptSituation.setAffects(sAffects);
-      
+
       /**
        * Affected Agencies?
        */
-      if( !CollectionsLibrary.isEmpty(affects.getAgencies())) {
+      if (!CollectionsLibrary.isEmpty(affects.getAgencies())) {
         Operators operators = new Operators();
         sAffects.setOperators(operators);
-        
-        for( SituationAffectedAgencyBean affectedAgency : affects.getAgencies() ) {
+
+        for (SituationAffectedAgencyBean affectedAgency : affects.getAgencies()) {
           AffectedOperatorStructure sAffectedOperator = new AffectedOperatorStructure();
           OperatorRefStructure operatorRef = new OperatorRefStructure();
           operatorRef.setValue(affectedAgency.getAgencyId());
@@ -330,6 +411,54 @@ class SituationServiceImpl implements SituationService {
           stopPointRef.setValue(affectedStop.getStopId());
           sAffectedStopPoint.setStopPointRef(stopPointRef);
           stopPoints.getAffectedStopPoint().add(sAffectedStopPoint);
+        }
+      }
+
+      /****
+       * Affected Vehicle Journeys?
+       */
+      if (!CollectionsLibrary.isEmpty(affects.getVehicleJourneys())) {
+
+        VehicleJourneys journeys = new VehicleJourneys();
+        sAffects.setVehicleJourneys(journeys);
+
+        for (SituationAffectedVehicleJourneyBean affectedVehicleJourney : affects.getVehicleJourneys()) {
+          
+          AffectedVehicleJourneyStructure sAffectedVehicleJourney = new AffectedVehicleJourneyStructure();
+          
+          LineRefStructure lineId = new LineRefStructure();
+          lineId.setValue(affectedVehicleJourney.getLineId());
+          sAffectedVehicleJourney.setLineRef(lineId);
+          
+          if (affectedVehicleJourney.getDirection() != null) {
+            DirectionRefStructure directionId = new DirectionRefStructure();
+            directionId.setValue(affectedVehicleJourney.getDirection());
+            sAffectedVehicleJourney.setDirectionRef(directionId);
+          }
+          
+          List<SituationAffectedCallBean> calls = affectedVehicleJourney.getCalls();
+          
+          if( CollectionsLibrary.isEmpty( calls )) {
+            calls = new ArrayList<SituationAffectedCallBean>();
+            SituationAffectedCallBean a = new SituationAffectedCallBean();
+            a.setStopId("1_10020");
+            calls.add(a);
+          }
+          
+          if( ! CollectionsLibrary.isEmpty( calls )) {
+            Calls sCalls = new Calls();
+            sAffectedVehicleJourney.setCalls(sCalls);
+            
+            for( SituationAffectedCallBean call : calls) {
+              AffectedCallStructure sCall = new AffectedCallStructure();
+              StopPointRefStructure stopPointRef = new StopPointRefStructure();
+              stopPointRef.setValue(call.getStopId());
+              sCall.setStopPointRef(stopPointRef);
+              sCalls.getCall().add(sCall);
+            }
+          }
+          
+          journeys.getAffectedVehicleJourney().add(sAffectedVehicleJourney);
         }
       }
     }

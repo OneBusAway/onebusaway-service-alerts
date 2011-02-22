@@ -25,5 +25,7 @@ public interface SituationService {
 
   public SituationConfiguration setAffectedStopForSituation(String id,
       String stopId, boolean active);
-
+  
+  public SituationConfiguration setAffectedVehicleJourneyForSituation(String id,
+      String routeId, String directionId, boolean active);
 }
