@@ -18,10 +18,13 @@ import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.SituationConfigurationV2Bean;
 import org.onebusaway.service_alerts.services.SituationService;
 import org.onebusaway.transit_data.model.AgencyBean;
+import org.onebusaway.transit_data.model.RouteBean;
 import org.onebusaway.transit_data.model.StopBean;
 import org.onebusaway.transit_data.model.service_alerts.NaturalLanguageStringBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedAgencyBean;
+import org.onebusaway.transit_data.model.service_alerts.SituationAffectedCallBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedStopBean;
+import org.onebusaway.transit_data.model.service_alerts.SituationAffectedVehicleJourneyBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectsBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationBean;
 import org.onebusaway.transit_data.services.TransitDataService;
@@ -218,6 +221,15 @@ public class SituationAction extends ActionSupport implements
     return "json";
   }
 
+  public String updateAffectedVehicleJourneyStopCall() {
+    _model = _situationService.setAffectedVehicleJourneyStopCallForSituation(
+        _model.getId(), _routeId, _directionId, _stopId, _enabled);
+    if (_model == null)
+      return INPUT;
+    fillResponse();
+    return "json";
+  }
+
   /****
    * 
    ****/
@@ -280,6 +292,23 @@ public class SituationAction extends ActionSupport implements
           StopBean stop = _transitDataService.getStop(affectedStop.getStopId());
           if (stop != null)
             factory.addToReferences(stop);
+        }
+      }
+
+      List<SituationAffectedVehicleJourneyBean> journeys = affects.getVehicleJourneys();
+      if (journeys != null) {
+        for (SituationAffectedVehicleJourneyBean journey : journeys) {
+          RouteBean route = _transitDataService.getRouteForId(journey.getLineId());
+          if (route != null)
+            factory.addToReferences(route);
+          List<SituationAffectedCallBean> calls = journey.getCalls();
+          if (calls != null) {
+            for (SituationAffectedCallBean call : calls) {
+              StopBean stop = _transitDataService.getStop(call.getStopId());
+              if (stop != null)
+                factory.addToReferences(stop);
+            }
+          }
         }
       }
     }

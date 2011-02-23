@@ -268,6 +268,59 @@ class SituationServiceImpl implements SituationService {
     return config;
   }
 
+  @Override
+  public SituationConfiguration setAffectedVehicleJourneyStopCallForSituation(
+      String id, String routeId, String directionId, String stopId,
+      boolean active) {
+
+    SituationConfiguration config = _situationsById.get(id);
+    if (config == null)
+      return null;
+
+    SituationBean situation = config.getSituation();
+    SituationAffectsBean affects = getAffectsForSituation(situation);
+
+    List<SituationAffectedVehicleJourneyBean> vehicleJourneys = affects.getVehicleJourneys();
+
+    if (vehicleJourneys == null)
+      return config;
+
+    SituationAffectedVehicleJourneyBean match = filterFirst(vehicleJourneys,
+        routeId, directionId);
+
+    if (match == null)
+      return config;
+
+    List<SituationAffectedCallBean> calls = match.getCalls();
+
+    if (active) {
+      if (calls == null) {
+        calls = new ArrayList<SituationAffectedCallBean>();
+        match.setCalls(calls);
+      }
+
+      SituationAffectedCallBean call = FunctionalLibrary.filterFirst(calls,
+          "stopId", stopId);
+
+      if (call == null) {
+        call = new SituationAffectedCallBean();
+        call.setStopId(stopId);
+        calls.add(call);
+        handleUpdate(config);
+      }
+
+    } else {
+      if (calls != null) {
+        List<SituationAffectedCallBean> matches = FunctionalLibrary.filter(
+            calls, "stopId", stopId);
+        if (calls.removeAll(matches))
+          handleUpdate(config);
+      }
+    }
+
+    return config;
+  }
+
   /****
    * Private Methods
    ****/
@@ -423,33 +476,33 @@ class SituationServiceImpl implements SituationService {
         sAffects.setVehicleJourneys(journeys);
 
         for (SituationAffectedVehicleJourneyBean affectedVehicleJourney : affects.getVehicleJourneys()) {
-          
+
           AffectedVehicleJourneyStructure sAffectedVehicleJourney = new AffectedVehicleJourneyStructure();
-          
+
           LineRefStructure lineId = new LineRefStructure();
           lineId.setValue(affectedVehicleJourney.getLineId());
           sAffectedVehicleJourney.setLineRef(lineId);
-          
+
           if (affectedVehicleJourney.getDirection() != null) {
             DirectionRefStructure directionId = new DirectionRefStructure();
             directionId.setValue(affectedVehicleJourney.getDirection());
             sAffectedVehicleJourney.setDirectionRef(directionId);
           }
-          
+
           List<SituationAffectedCallBean> calls = affectedVehicleJourney.getCalls();
-          
-          if( CollectionsLibrary.isEmpty( calls )) {
+
+          if (CollectionsLibrary.isEmpty(calls)) {
             calls = new ArrayList<SituationAffectedCallBean>();
             SituationAffectedCallBean a = new SituationAffectedCallBean();
             a.setStopId("1_10020");
             calls.add(a);
           }
-          
-          if( ! CollectionsLibrary.isEmpty( calls )) {
+
+          if (!CollectionsLibrary.isEmpty(calls)) {
             Calls sCalls = new Calls();
             sAffectedVehicleJourney.setCalls(sCalls);
-            
-            for( SituationAffectedCallBean call : calls) {
+
+            for (SituationAffectedCallBean call : calls) {
               AffectedCallStructure sCall = new AffectedCallStructure();
               StopPointRefStructure stopPointRef = new StopPointRefStructure();
               stopPointRef.setValue(call.getStopId());
@@ -457,7 +510,7 @@ class SituationServiceImpl implements SituationService {
               sCalls.getCall().add(sCall);
             }
           }
-          
+
           journeys.getAffectedVehicleJourney().add(sAffectedVehicleJourney);
         }
       }

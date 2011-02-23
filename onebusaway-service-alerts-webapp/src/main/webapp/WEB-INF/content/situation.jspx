@@ -15,6 +15,7 @@
 <script type="text/javascript" src="${oba:resource('AlertResources')}"><jsp:text></jsp:text></script>
 <script type="text/javascript" src="${oba:resource('file:/Users/bdferris/oba/onebusaway-application-modules/onebusaway-presentation/src/main/resources/org/onebusaway/presentation/js/oba-api.js')}"><jsp:text></jsp:text></script>
 <script type="text/javascript" src="${oba:resource('file:/Users/bdferris/oba/onebusaway-application-modules/onebusaway-presentation/src/main/resources/org/onebusaway/presentation/js/oba-presentation.js')}"><jsp:text></jsp:text></script>
+<script type="text/javascript" src="${oba:resource('file:/Users/bdferris/oba/onebusaway-application-modules/onebusaway-presentation/src/main/resources/org/onebusaway/presentation/js/oba-maps.js')}"><jsp:text></jsp:text></script>
 <script type="text/javascript" src="${oba:resource('file:/Users/bdferris/oba/onebusaway-application-modules/onebusaway-presentation/src/main/resources/org/onebusaway/presentation/js/oba-transit-map.js')}"><jsp:text></jsp:text></script>
 <script type="text/javascript" src="${oba:resource('file:/Users/bdferris/oba/onebusaway-application-modules/onebusaway-presentation/src/main/resources/org/onebusaway/presentation/js/oba-stop-selection-widget.js')}"><jsp:text></jsp:text></script>
 <script type="text/javascript" src="${oba:resource('/js/situation.js')}"><jsp:text></jsp:text></script>
@@ -101,7 +102,13 @@ jQuery(document).ready(function() {
 
 <div class="affectedVehicleJourneyTemplate" style="display:none">
 <div class="name"><span class="routeName">Route Name</span><span class="routeDescription"> - Route Description</span></div>
-<div><a href="javascript:void(0)">Remove</a></div>
+<ul>
+  <li><a class="remove" href="javascript:void(0)">Remove</a></li>
+  <li><a class="configureCalls" href="javascript:void(0)">Configure Calls</a></li>
+  <ul class="calls">
+    <li class="callTemplate" style="display: none"><span class="stopName">Stop Name</span><jsp:text> - </jsp:text><span class="stopCode"><s:text name="StopNum"/></span><span class="stopDirection"> - <s:text name="bound"/></span> - <a href="javascript:void(0)">Remove</a></li>
+  </ul>
+</ul>
 </div>
 
 <div class="routeDialogTemplate" style="display:none">

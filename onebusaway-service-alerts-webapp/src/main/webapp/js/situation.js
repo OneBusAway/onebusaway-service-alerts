@@ -2,9 +2,55 @@ var OBA = window.OBA || {};
 
 var oba_service_alerts_situation = function(data) {
 
+	var infoWindow = new google.maps.InfoWindow();
+
 	var affectedAgenciesById = {};
 	var affectedStopsById = {};
 	var affectedVehicleJourneysById = {};
+	var affectedVehicleJourneyStopCallsById = {};
+
+	/***************************************************************************
+	 * 
+	 **************************************************************************/
+
+	var stopClickHandler = function(stop, map, initiallyEnabled, handler) {
+
+		var content = OBA.Presentation.createStopInfoWindow(stop);
+
+		var addContent = content.find('.stopContent .addStop');
+		var removeContent = content.find('.stopContent .removeStop');
+
+		var addAnchor = addContent.find('a');
+		var removeAnchor = removeContent.find('a');
+
+		var contentRefresh = function(enabled) {
+			if (enabled) {
+				addContent.hide();
+				removeContent.show();
+			} else {
+				addContent.show();
+				removeContent.hide();
+			}
+			infoWindow.setContent(content.show().get(0));
+			handler(enabled);
+		};
+
+		addAnchor.click(function() {
+			contentRefresh(true);
+		});
+
+		removeAnchor.click(function() {
+			contentRefresh(false);
+		});
+
+		contentRefresh(initiallyEnabled);
+
+		var pos = new google.maps.MVCObject();
+		pos.set('position', new google.maps.LatLng(stop.lat, stop.lon));
+
+		infoWindow.setContent(content.show().get(0));
+		infoWindow.open(map, pos);
+	};
 
 	var refreshConfiguration = function(config) {
 
@@ -54,6 +100,7 @@ var oba_service_alerts_situation = function(data) {
 		affectedVehicleJourneysElement.empty();
 
 		affectedVehicleJourneysById = {};
+		affectedVehicleJourneyStopCallsById = {};
 
 		jQuery.each(affectedVehicleJourneys,
 				function() {
@@ -224,48 +271,15 @@ var oba_service_alerts_situation = function(data) {
 		return false;
 	};
 
-	var infoWindow = new google.maps.InfoWindow();
-
 	var affectedStopClickHandler = function(stop, map) {
-
-		var content = OBA.Presentation.createStopInfoWindow(stop);
-
-		var addContent = content.find('.stopContent .addStop');
-		var removeContent = content.find('.stopContent .removeStop');
-
-		var addAnchor = addContent.find('a');
-		var removeAnchor = removeContent.find('a');
-
-		var contentRefresh = function() {
-			if (stop.id in affectedStopsById) {
-				addContent.hide();
-				removeContent.show();
-			} else {
-				addContent.show();
-				removeContent.hide();
-			}
-			infoWindow.setContent(content.show().get(0));
-		};
-
-		addAnchor.click(function() {
-			affectedStopsById[stop.id] = true;
-			contentRefresh();
-			updateAffectedStop(stop, true);
+		var initiallyEnabled = (stop.id in affectedStopsById);
+		stopClickHandler(stop, map, initiallyEnabled, function(enabled) {
+			if (enabled)
+				affectedStopsById[stop.id] = true;
+			else
+				delete affectedStopsById[stop.id];
+			updateAffectedStop(stop, enabled);
 		});
-
-		removeAnchor.click(function() {
-			delete affectedStopsById[stop.id];
-			contentRefresh();
-			updateAffectedStop(stop, false);
-		});
-
-		contentRefresh();
-
-		var pos = new google.maps.MVCObject();
-		pos.set('position', new google.maps.LatLng(stop.lat, stop.lon));
-
-		infoWindow.setContent(content.show().get(0));
-		infoWindow.open(map, pos);
 	};
 
 	jQuery('#addAffectedStop').click(addAffectedStop);
@@ -273,8 +287,15 @@ var oba_service_alerts_situation = function(data) {
 	/***************************************************************************
 	 * Affected Vehicle Journeys
 	 **************************************************************************/
-	
-	var refreshAffectedVehicleJourney = function(affectedVehicleJourneysElement, entry) {
+
+	var keyForVehicleJourneyCall = function(entry, stopId) {
+		var lineId = entry.lineId || '';
+		var directionId = entry.directionId || '';
+		return lineId + '|' + directionId + '|' + stopId;
+	}
+
+	var refreshAffectedVehicleJourney = function(
+			affectedVehicleJourneysElement, entry) {
 
 		var route = entry.route;
 
@@ -282,18 +303,50 @@ var oba_service_alerts_situation = function(data) {
 		content.removeClass('affectedVehicleJourneyTemplate');
 		content.addClass('affectedVehicleJourney');
 
-		content.find('.routeName').text(entry.lineId);
-		
+		content.find('.routeName').text(OBA.Presentation.getNameForRoute(entry.route));
+
 		var desc = content.find('.routeDescription');
-		if( entry.direction )
-			desc.text(' - ' + entry.direction);
+		if (entry.directionId)
+			desc.text(' - ' + entry.directionId);
 		else
 			desc.hide();
 
-		var removeElement = content.find('a');
-		removeElement.click(function() {
-			updateAffectedVehicleJourney(entry.lineId, entry.direction, false);
+		var configureCallsElement = content.find('a.configureCalls');
+		configureCallsElement.click(function() {
+			showConfigureCallsDialog(entry);
 		});
+
+		var callsElement = content.find('ul.calls');
+		var calls = entry.calls || [];
+		jQuery.each(calls, function() {
+
+			var call = this;
+
+			var element = callsElement.find('.callTemplate').clone();
+			element.removeClass('.callTemplate');
+			element.addClass('.call');
+
+			OBA.Presentation.applyStopNameToElement(call.stop, element);
+
+			var anchorElement = element.find('a');
+			anchorElement.click(function() {
+				updateAffectedVehicleJourneyStopCall(entry.lineId,
+						entry.directionId, call.stopId, false);
+			});
+
+			element.show();
+			element.appendTo(callsElement);
+
+			var key = keyForVehicleJourneyCall(entry, call.stopId);
+			affectedVehicleJourneyStopCallsById[key] = true;
+		});
+
+		var removeElement = content.find('a.remove');
+		removeElement
+				.click(function() {
+					updateAffectedVehicleJourney(entry.lineId,
+							entry.directionId, false);
+				});
 
 		content.appendTo(affectedVehicleJourneysElement);
 		content.show();
@@ -304,33 +357,33 @@ var oba_service_alerts_situation = function(data) {
 		var params = {};
 		params.id = data.id;
 		params.routeId = routeId;
-		if( directionId )
+		if (directionId)
 			params.directionId = directionId;
 		params.enabled = enabled;
 		jQuery.getJSON(url, params, configRawHandler);
 	};
-	
+
 	var showRoute = function(parentContent, route, stopsForRoute) {
-		
+
 		parentContent.empty();
-		
+
 		var content = jQuery('.routeEntryTemplate').clone();
 		content.removeClass('routeEntryTemplate');
 		content.addClass('routeEntry');
-		
+
 		content.find('h2').text(OBA.Presentation.getNameForRoute(route));
 		content.find('p>a').click(function() {
-			updateAffectedVehicleJourney(route.id,null,true);
+			updateAffectedVehicleJourney(route.id, null, true);
 			parentContent.dialog('close');
 		});
-		
+
 		var list = content.find('ul');
-		
+
 		var stopGroupings = stopsForRoute.stopGroupings || [];
 		jQuery.each(stopGroupings, function() {
-			if( this.type != 'direction')
+			if (this.type != 'direction')
 				return;
-			jQuery.each(this.stopGroups,function() {
+			jQuery.each(this.stopGroups, function() {
 				var stopGroup = this;
 				var name = OBA.Presentation.nameAsString(stopGroup.name);
 				var el = content.find('.affectedDirectionTemplate').clone();
@@ -338,34 +391,38 @@ var oba_service_alerts_situation = function(data) {
 				el.addClass('affectedDirection');
 				el.find('.name').text(name);
 				el.find('a').click(function() {
-					updateAffectedVehicleJourney(route.id,stopGroup.id,true);
+					updateAffectedVehicleJourney(route.id, stopGroup.id, true);
 					parentContent.dialog('close');
 				});
 				el.show();
 				el.appendTo(list);
 			});
 		});
-		
+
 		content.show();
 		content.appendTo(parentContent);
 	};
-	
-	var showRoutes = function(parentContent,routesList) {
-		
+
+	var showRoutes = function(parentContent, routesList) {
+
 		var routes = routesList.list;
-		
+
 		var routeSearchResults = parentContent.find('.routeSearchResults');
 		routeSearchResults.empty();
-		
+
 		var list = jQuery('<ul/>');
 		list.appendTo(routeSearchResults);
-		
-		if( routes.length == 0 ) {
+
+		if (routes.length == 0) {
 			var item = jQuery('<li/>');
 			item.text('No routes found');
 			item.appendTo(list);
-		}
-		else {
+		} else if (routes.length == 1) {
+			var route = routes[0];
+			OBA.Api.stopsForRoute(route.id, function(stopsForRoute) {
+				showRoute(parentContent, route, stopsForRoute);
+			});
+		} else {
 			jQuery.each(routes, function() {
 				var route = this;
 				var content = jQuery('.routeItemTemplate').clone();
@@ -388,28 +445,27 @@ var oba_service_alerts_situation = function(data) {
 		var content = jQuery('.routeDialogTemplate').clone();
 		content.removeClass('routeDialogTemplate');
 		content.addClass('routeDialog');
-		
+
 		var routeNameInput = content.find('.routeNameInput');
 		var routeNameSearchButton = content.find('.routeNameSearchButton');
-		
-		
-		routeNameSearchButton.click(function(){
+
+		routeNameSearchButton.click(function() {
 			var text = routeNameInput.val();
-			if( text.length == 0)
+			if (text.length == 0)
 				return;
 			var params = {};
 			params.query = text;
 			params.lat = OBA.Config.centerLat || 47.606828;
 			params.lon = OBA.Config.centerLon || -122.332505;
 			params.radius = 20000;
-			
-			OBA.Api.routesForLocation(params,function(routes) {
-				showRoutes(content,routes);
-				
+
+			OBA.Api.routesForLocation(params, function(routes) {
+				showRoutes(content, routes);
+
 				var list = jQuery('<ul/>');
 			});
 		});
-		
+
 		var dialogOptions = {
 			title : 'Select a Route',
 			modal : true,
@@ -430,6 +486,64 @@ var oba_service_alerts_situation = function(data) {
 	};
 
 	jQuery('#addAffectedVehicleJourney').click(addAffectedVehicleJourney);
+
+	/***************************************************************************
+	 * Affected Vehicle Journey Calls
+	 **************************************************************************/
+
+	var showConfigureCallsDialog = function(entry) {
+
+		var content = jQuery('<div/>');
+		content.addClass('stopSelectionDialog');
+
+		var params = {};
+		params.stopClickHandler = function(stop) {
+			affectedVehicleJourneyStopCallClickHandler(entry, stop,
+					stopSelectionWidget.map);
+		};
+		params.routeId = entry.lineId;
+		if (entry.directionId)
+			params.directionId = entry.directionId;
+
+		var stopSelectionWidget = OBA.StopSelectionWidget(content, params);
+
+		var dialogOptions = {
+			title : 'Select Stops',
+			modal : true,
+			width : '90%',
+			height : 700
+		};
+
+		content.dialog(dialogOptions);
+	};
+
+	var affectedVehicleJourneyStopCallClickHandler = function(entry, stop, map) {
+
+		var key = keyForVehicleJourneyCall(entry, stop.id);
+		var initiallyEnabled = (key in affectedVehicleJourneyStopCallsById);
+
+		stopClickHandler(stop, map, initiallyEnabled, function(enabled) {
+			if (enabled)
+				affectedVehicleJourneyStopCallsById[key] = true;
+			else
+				delete affectedVehicleJourneyStopCallsById[key];
+			updateAffectedVehicleJourneyStopCall(entry.lineId,
+					entry.directionId, stop.id, enabled);
+		});
+	};
+
+	var updateAffectedVehicleJourneyStopCall = function(routeId, directionId,
+			stopId, enabled) {
+		var url = 'situation!updateAffectedVehicleJourneyStopCall.action';
+		var params = {};
+		params.id = data.id;
+		params.routeId = routeId;
+		if (directionId)
+			params.directionId = directionId;
+		params.stopId = stopId;
+		params.enabled = enabled;
+		jQuery.getJSON(url, params, configRawHandler);
+	};
 
 	/**
 	 * Finally, display the situation
