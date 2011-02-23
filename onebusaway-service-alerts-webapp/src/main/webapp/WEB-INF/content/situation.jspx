@@ -18,6 +18,18 @@
 <script type="text/javascript" src="${oba:resource('file:/Users/bdferris/oba/onebusaway-application-modules/onebusaway-presentation/src/main/resources/org/onebusaway/presentation/js/oba-maps.js')}"><jsp:text></jsp:text></script>
 <script type="text/javascript" src="${oba:resource('file:/Users/bdferris/oba/onebusaway-application-modules/onebusaway-presentation/src/main/resources/org/onebusaway/presentation/js/oba-transit-map.js')}"><jsp:text></jsp:text></script>
 <script type="text/javascript" src="${oba:resource('file:/Users/bdferris/oba/onebusaway-application-modules/onebusaway-presentation/src/main/resources/org/onebusaway/presentation/js/oba-stop-selection-widget.js')}"><jsp:text></jsp:text></script>
+
+<script type="text/javascript" src="${oba:resource('/js/polyline/spherical_formulas.js')}"><jsp:text></jsp:text></script>
+<script type="text/javascript" src="${oba:resource('/js/polyline/utils.js')}"><jsp:text></jsp:text></script>
+<script type="text/javascript" src="${oba:resource('/js/polyline/Polyline.js')}"><jsp:text></jsp:text></script>
+<script type="text/javascript" src="${oba:resource('/js/polyline/PathWithMarkers.js')}"><jsp:text></jsp:text></script>
+<script type="text/javascript" src="${oba:resource('/js/polyline/MarkersCollection.js')}"><jsp:text></jsp:text></script>
+<script type="text/javascript" src="${oba:resource('/js/polyline/Segment.js')}"><jsp:text></jsp:text></script>
+<script type="text/javascript" src="${oba:resource('/js/polyline/PointMarker.js')}"><jsp:text></jsp:text></script>
+<script type="text/javascript" src="${oba:resource('/js/polyline/RgbColor.js')}"><jsp:text></jsp:text></script>
+<script type="text/javascript" src="${oba:resource('/js/polyline/HslColor.js')}"><jsp:text></jsp:text></script>
+<script type="text/javascript" src="${oba:resource('/js/polyline/Drawingline.js')}"><jsp:text></jsp:text></script>
+
 <script type="text/javascript" src="${oba:resource('/js/situation.js')}"><jsp:text></jsp:text></script>
 <script type="text/javascript">
 jQuery(document).ready(function() {
@@ -131,8 +143,17 @@ jQuery(document).ready(function() {
 
 <p><a id="addAffectedVehicleJourney" href="javascript:void(0)">Add an affected vehicle journey</a></p>
 
+<h3>Consequences</h3>
+
+<ul id="consequences">
+    <li class="consequenceItemTemplate" style="display: none"><span class="name">Name</span> - <a class="edit" href="javascript:void(0)">Edit</a> - <a class="remove" href="javascript:void(0)">Remove</a></li>
+</ul>
+
+<p><a id="addConsequence" href="javascript:void(0)">Add a consequence</a></p>
+
 <!-- Templates -->
 <s:component template="oba-stop-selection-widget.ftl"/>
+
 <s:component template="oba-stop-info-window-template.ftl">
   <s:param name="content">
     <div class="addStop">
@@ -144,6 +165,24 @@ jQuery(document).ready(function() {
     </div>
   </s:param>
 </s:component>
+
+<div class="consequenceDialogTemplate" style="display: none">
+
+<h3>Details</h3>
+
+<s:form id="consequenceForm">
+<s:select label="Condition" id="condition" name="condition" headerKey="null" headerValue="Select Condition" list="serviceConditionValues" />
+</s:form>
+
+<div id="consequenceMap"><jsp:text></jsp:text></div>
+<ul>
+  <li><a id="createDiversionPath" href="javascript:void(0)">Create Diversion Path</a></li>
+  <li><a id="editDiversionPath" href="javascript:void(0)">Edit Diversion Path</a></li>
+  <li><a id="clearDiversionPath" href="javascript:void(0)">Clear Diversion Path</a></li>
+</ul>
+
+<p><a id="saveConsequence" href="javascript:void(0)">Save</a></p>
+</div>
 
 </body>
 </html>

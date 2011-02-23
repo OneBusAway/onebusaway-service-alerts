@@ -10,9 +10,11 @@ import java.util.Map;
 import org.apache.commons.lang.ObjectUtils;
 import org.onebusaway.collections.CollectionsLibrary;
 import org.onebusaway.collections.FunctionalLibrary;
+import org.onebusaway.geospatial.model.EncodedPolylineBean;
 import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.services.SiriService;
 import org.onebusaway.service_alerts.services.SituationService;
+import org.onebusaway.siri.ConditionDetails;
 import org.onebusaway.siri.core.SiriServer;
 import org.onebusaway.transit_data.model.service_alerts.NaturalLanguageStringBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedAgencyBean;
@@ -21,6 +23,8 @@ import org.onebusaway.transit_data.model.service_alerts.SituationAffectedStopBea
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedVehicleJourneyBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectsBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationBean;
+import org.onebusaway.transit_data.model.service_alerts.SituationConditionDetailsBean;
+import org.onebusaway.transit_data.model.service_alerts.SituationConsequenceBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,11 +42,15 @@ import uk.org.siri.siri.DirectionRefStructure;
 import uk.org.siri.siri.EntryQualifierStructure;
 import uk.org.siri.siri.EnvironmentReasonEnumeration;
 import uk.org.siri.siri.EquipmentReasonEnumeration;
+import uk.org.siri.siri.ExtensionsStructure;
 import uk.org.siri.siri.LineRefStructure;
 import uk.org.siri.siri.MiscellaneousReasonEnumeration;
 import uk.org.siri.siri.OperatorRefStructure;
 import uk.org.siri.siri.PersonnelReasonEnumeration;
+import uk.org.siri.siri.PtConsequenceStructure;
+import uk.org.siri.siri.PtConsequencesStructure;
 import uk.org.siri.siri.PtSituationElementStructure;
+import uk.org.siri.siri.ServiceConditionEnumeration;
 import uk.org.siri.siri.ServiceDelivery;
 import uk.org.siri.siri.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri.SituationExchangeDeliveryStructure.Situations;
@@ -321,6 +329,69 @@ class SituationServiceImpl implements SituationService {
     return config;
   }
 
+  @Override
+  public SituationConfiguration addConsequenceForSituation(String id,
+      SituationConsequenceBean consequence) {
+
+    SituationConfiguration config = _situationsById.get(id);
+    if (config == null)
+      return null;
+
+    SituationBean situation = config.getSituation();
+
+    List<SituationConsequenceBean> consequences = situation.getConsequences();
+
+    if (consequences == null) {
+      consequences = new ArrayList<SituationConsequenceBean>();
+      situation.setConsequences(consequences);
+    }
+
+    consequences.add(consequence);
+    handleUpdate(config);
+
+    return config;
+  }
+
+  @Override
+  public SituationConfiguration updateConsequenceForSituation(String id,
+      int index, SituationConsequenceBean consequence) {
+
+    SituationConfiguration config = _situationsById.get(id);
+    if (config == null)
+      return null;
+
+    SituationBean situation = config.getSituation();
+
+    List<SituationConsequenceBean> consequences = situation.getConsequences();
+
+    if (consequences != null && 0 <= index && index < consequences.size()) {
+      consequences.set(index, consequence);
+      handleUpdate(config);
+    }
+
+    return config;
+  }
+
+  @Override
+  public SituationConfiguration removeConsequenceForSituation(String id,
+      int index) {
+
+    SituationConfiguration config = _situationsById.get(id);
+    if (config == null)
+      return null;
+
+    SituationBean situation = config.getSituation();
+
+    List<SituationConsequenceBean> consequences = situation.getConsequences();
+
+    if (consequences != null && 0 <= index && index < consequences.size()) {
+      consequences.remove(index);
+      handleUpdate(config);
+    }
+
+    return config;
+  }
+
   /****
    * Private Methods
    ****/
@@ -428,6 +499,14 @@ class SituationServiceImpl implements SituationService {
 
     ptSituation.setUndefinedReason(situation.getUndefinedReason());
 
+    constructionSiriSituationAffects(situation, ptSituation);
+    constructSiriSituationConsequences(situation, ptSituation);
+
+    return ptSituation;
+  }
+
+  private void constructionSiriSituationAffects(SituationBean situation,
+      PtSituationElementStructure ptSituation) {
     SituationAffectsBean affects = situation.getAffects();
 
     if (affects != null) {
@@ -491,13 +570,6 @@ class SituationServiceImpl implements SituationService {
 
           List<SituationAffectedCallBean> calls = affectedVehicleJourney.getCalls();
 
-          if (CollectionsLibrary.isEmpty(calls)) {
-            calls = new ArrayList<SituationAffectedCallBean>();
-            SituationAffectedCallBean a = new SituationAffectedCallBean();
-            a.setStopId("1_10020");
-            calls.add(a);
-          }
-
           if (!CollectionsLibrary.isEmpty(calls)) {
             Calls sCalls = new Calls();
             sAffectedVehicleJourney.setCalls(sCalls);
@@ -515,8 +587,39 @@ class SituationServiceImpl implements SituationService {
         }
       }
     }
+  }
 
-    return ptSituation;
+  private void constructSiriSituationConsequences(SituationBean situation,
+      PtSituationElementStructure ptSituation) {
+    List<SituationConsequenceBean> consequences = situation.getConsequences();
+
+    if (!CollectionsLibrary.isEmpty(consequences)) {
+
+      PtConsequencesStructure ptConsequences = new PtConsequencesStructure();
+      ptSituation.setConsequences(ptConsequences);
+
+      for (SituationConsequenceBean consequence : consequences) {
+        PtConsequenceStructure ptConsequence = new PtConsequenceStructure();
+        ptConsequences.getConsequence().add(ptConsequence);
+
+        if (consequence.getCondition() != null)
+          ptConsequence.setCondition(ServiceConditionEnumeration.fromValue(consequence.getCondition()));
+
+        SituationConditionDetailsBean details = consequence.getConditionDetails();
+
+        if (details != null && details.getDiversionPath() != null) {
+
+          ConditionDetails ptDetails = new ConditionDetails();
+
+          EncodedPolylineBean path = details.getDiversionPath();
+          ptDetails.setDiversionPath(path.getPoints());
+
+          ExtensionsStructure extension = new ExtensionsStructure();
+          extension.setAny(ptDetails);
+          ptConsequence.setExtensions(extension);
+        }
+      }
+    }
   }
 
   private void publishPtSituation(PtSituationElementStructure ptSituation) {

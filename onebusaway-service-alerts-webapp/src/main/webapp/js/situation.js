@@ -51,6 +51,10 @@ var oba_service_alerts_situation = function(data) {
 		infoWindow.setContent(content.show().get(0));
 		infoWindow.open(map, pos);
 	};
+	
+	/****
+	 * 
+	 ****/
 
 	var refreshConfiguration = function(config) {
 
@@ -107,6 +111,19 @@ var oba_service_alerts_situation = function(data) {
 					refreshAffectedVehicleJourney(
 							affectedVehicleJourneysElement, this);
 				});
+		
+		/****
+		 * 
+		 ****/
+		
+		var consequencesElement = jQuery('#consequences');
+		// Remove any existing items
+		jQuery('.consequenceItem').remove();
+
+		var consequences = situation.consequences || [];
+		jQuery.each(consequences, function(index){
+			refreshConsequence(consequencesElement, this, index);
+		});
 	};
 
 	var processConfiguration = function(config, references) {
@@ -252,13 +269,6 @@ var oba_service_alerts_situation = function(data) {
 		var content = jQuery('<div/>');
 		content.addClass('stopSelectionDialog');
 
-		var params = {};
-		params.stopClickHandler = function(stop) {
-			affectedStopClickHandler(stop, stopSelectionWidget.map);
-		};
-
-		var stopSelectionWidget = OBA.StopSelectionWidget(content, params);
-
 		var dialogOptions = {
 			title : 'Select Stops',
 			modal : true,
@@ -267,6 +277,13 @@ var oba_service_alerts_situation = function(data) {
 		};
 
 		content.dialog(dialogOptions);
+		
+		var params = {};
+		params.stopClickHandler = function(stop) {
+			affectedStopClickHandler(stop, stopSelectionWidget.map);
+		};
+
+		var stopSelectionWidget = OBA.StopSelectionWidget(content, params);
 
 		return false;
 	};
@@ -303,7 +320,8 @@ var oba_service_alerts_situation = function(data) {
 		content.removeClass('affectedVehicleJourneyTemplate');
 		content.addClass('affectedVehicleJourney');
 
-		content.find('.routeName').text(OBA.Presentation.getNameForRoute(entry.route));
+		content.find('.routeName').text(
+				OBA.Presentation.getNameForRoute(entry.route));
 
 		var desc = content.find('.routeDescription');
 		if (entry.directionId)
@@ -544,6 +562,131 @@ var oba_service_alerts_situation = function(data) {
 		params.enabled = enabled;
 		jQuery.getJSON(url, params, configRawHandler);
 	};
+
+	/***************************************************************************
+	 * Consequences
+	 **************************************************************************/
+	
+	var refreshConsequence = function(consequencesElement, consequence, index) {
+
+		var content = jQuery('.consequenceItemTemplate').clone();
+		content.removeClass('consequenceItemTemplate');
+		content.addClass('consequenceItem');
+
+		var name = '?';
+		if( consequence.condition )
+			name = consequence.condition;
+		content.find('.name').text(name);
+		
+		var editElement = content.find('a.edit');
+		editElement.click(function() {
+			//updateAffectedAgency(agency, false);
+		});
+
+		var removeElement = content.find('a.remove');
+		removeElement.click(function() {
+			var url = 'situation!removeConsequence.action';
+			var params = {};
+			params.id = data.id;
+			params.index = index;
+			jQuery.getJSON(url, params, configRawHandler);
+		});
+
+		content.appendTo(consequencesElement);
+		content.show();
+	};
+
+	var addConsequence = function() {
+		
+		var path = new google.maps.MVCArray();
+		
+		var content = jQuery('.consequenceDialogTemplate').clone();
+		content.removeClass('consequenceDialogTemplate');
+		content.addClass('consequenceDialog');
+		
+		var dialogOptions = {
+			title : 'Consquence',
+			modal : true,
+			width : '90%',
+			height : 700
+		};
+
+		content.dialog(dialogOptions);
+		
+		var mapElement = content.find('#consequenceMap');
+		var map = OBA.Maps.map(mapElement);
+
+		var polyOptions = {
+			strokeColor : '#ff0000',
+			strokeOpacity : 0.6,
+			strokeWeight : 3,
+			clickable : true,
+			geodesic : false,
+			path : path
+		};
+
+		var poly = new google.mapsextensions.Polyline(polyOptions);
+		poly.setMap(map);
+		
+		var createElement = content.find('#createDiversionPath');
+		var creating = false;
+		createElement.click(function() {
+			if( creating ) {
+				poly.disableEditing();
+				createElement.text('Create Diversion Path');
+			}
+			else {
+				poly.enableDrawing();
+				createElement.text('Complete Diversion Path');
+			}
+			creating = ! creating;
+		});
+
+		var editElement = content.find('#editDiversionPath');
+		var editing = false;
+		
+		editElement.click(function() {
+			if( editing ) {
+				poly.disableEditing();
+				editElement.text('Stop Edit Diversion Path');
+			}
+			else {
+				poly.enableEditing();
+				editElement.text('Stop Edit Diversion Path');
+			}
+			editing = ! editing;
+		});
+
+		content.find('#clearDiversionPath').click(function() {
+			var polyPath = poly.getPath();
+			polyPath.clear();
+		});
+		
+		var conditionElement = content.find('#condition');
+		
+		var saveConsequenceAnchor = content.find('#saveConsequence');
+		saveConsequenceAnchor.click(function() {
+			
+			var url = 'situation!addConsequence.action';
+			
+			var params = {};
+			params.id = data.id;
+			params['condition'] = conditionElement.val();
+			var points = [];
+			var polyPath = poly.getPath();
+			for( var i=0; i<polyPath.getLength(); i++)
+				points.push(polyPath.getAt(i));
+			var encodedPath = OBA.Maps.encodePolyline(points);
+			params['diversionPath'] = encodedPath;
+			
+			jQuery.getJSON(url, params, configRawHandler);
+			
+			content.dialog('close');
+		});
+
+	};
+
+	jQuery('#addConsequence').click(addConsequence);
 
 	/**
 	 * Finally, display the situation

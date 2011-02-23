@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.transit_data.model.service_alerts.SituationBean;
+import org.onebusaway.transit_data.model.service_alerts.SituationConsequenceBean;
 
 public interface SituationService {
 
@@ -31,4 +32,10 @@ public interface SituationService {
   
   public SituationConfiguration setAffectedVehicleJourneyStopCallForSituation(String id,
       String routeId, String directionId, String stopId, boolean active);
+  
+  public SituationConfiguration addConsequenceForSituation(String id, SituationConsequenceBean consequence);
+  
+  public SituationConfiguration updateConsequenceForSituation(String id, int index, SituationConsequenceBean consequence);
+  
+  public SituationConfiguration removeConsequenceForSituation(String id, int index);
 }

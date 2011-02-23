@@ -9,11 +9,14 @@ import org.onebusaway.api.ResponseCodes;
 import org.onebusaway.api.model.ResponseBean;
 import org.onebusaway.api.model.transit.BeanFactoryV2;
 import org.onebusaway.api.model.transit.EntryWithReferencesBean;
+import org.onebusaway.geospatial.model.EncodedPolylineBean;
 import org.onebusaway.presentation.bundles.ResourceBundleSupport;
 import org.onebusaway.presentation.bundles.service_alerts.EnvironmentReasons;
 import org.onebusaway.presentation.bundles.service_alerts.EquipmentReasons;
 import org.onebusaway.presentation.bundles.service_alerts.MiscellaneousReasons;
 import org.onebusaway.presentation.bundles.service_alerts.PersonnelReasons;
+import org.onebusaway.presentation.bundles.service_alerts.ServiceConditions;
+import org.onebusaway.presentation.impl.StackInterceptor.AddToStack;
 import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.SituationConfigurationV2Bean;
 import org.onebusaway.service_alerts.services.SituationService;
@@ -27,6 +30,8 @@ import org.onebusaway.transit_data.model.service_alerts.SituationAffectedStopBea
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedVehicleJourneyBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectsBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationBean;
+import org.onebusaway.transit_data.model.service_alerts.SituationConditionDetailsBean;
+import org.onebusaway.transit_data.model.service_alerts.SituationConsequenceBean;
 import org.onebusaway.transit_data.services.TransitDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -39,6 +44,7 @@ import com.opensymphony.xwork2.ModelDriven;
     @Result(type = "redirectAction", name = "delete", params = {
         "actionName", "situation!list"}),
     @Result(type = "json", name = "json", params = {"root", "response"})})
+@AddToStack("consequence")
 public class SituationAction extends ActionSupport implements
     ModelDriven<SituationConfiguration> {
 
@@ -65,6 +71,10 @@ public class SituationAction extends ActionSupport implements
   private String _agencyId;
 
   private boolean _enabled;
+
+  private ConsequenceFormBean _consequence = new ConsequenceFormBean();
+
+  private int _index;
 
   @Autowired
   public void setTransitDataService(TransitDataService transitDataService) {
@@ -118,6 +128,14 @@ public class SituationAction extends ActionSupport implements
 
   public void setEnabled(boolean enabled) {
     _enabled = enabled;
+  }
+
+  public ConsequenceFormBean getConsequence() {
+    return _consequence;
+  }
+
+  public void setIndex(int index) {
+    _index = index;
   }
 
   @Override
@@ -230,6 +248,39 @@ public class SituationAction extends ActionSupport implements
     return "json";
   }
 
+  public String addConsequence() {
+
+    SituationConsequenceBean consequence = fillConsequence();
+
+    _model = _situationService.addConsequenceForSituation(_model.getId(),
+        consequence);
+    if (_model == null)
+      return INPUT;
+    fillResponse();
+    return "json";
+  }
+
+  public String updateConsequence() {
+
+    SituationConsequenceBean consequence = fillConsequence();
+
+    _model = _situationService.updateConsequenceForSituation(_model.getId(),
+        _index, consequence);
+    if (_model == null)
+      return INPUT;
+    fillResponse();
+    return "json";
+  }
+
+  public String removeConsequence() {
+    _model = _situationService.removeConsequenceForSituation(_model.getId(),
+        _index);
+    if (_model == null)
+      return INPUT;
+    fillResponse();
+    return "json";
+  }
+
   /****
    * 
    ****/
@@ -250,6 +301,10 @@ public class SituationAction extends ActionSupport implements
     return ResourceBundleSupport.getLocaleMap(this, PersonnelReasons.class);
   }
 
+  public Map<String, String> getServiceConditionValues() {
+    return ResourceBundleSupport.getLocaleMap(this, ServiceConditions.class);
+  }
+
   /****
    * Private Methods
    ****/
@@ -264,6 +319,20 @@ public class SituationAction extends ActionSupport implements
     if (nls == null || string(nls.getValue()) == null)
       return null;
     return nls;
+  }
+
+  private SituationConsequenceBean fillConsequence() {
+    SituationConsequenceBean bean = new SituationConsequenceBean();
+    bean.setCondition(string(_consequence.getCondition()));
+    String diversionPath = string(_consequence.getDiversionPath());
+    if (diversionPath != null) {
+      SituationConditionDetailsBean details = new SituationConditionDetailsBean();
+      EncodedPolylineBean poly = new EncodedPolylineBean();
+      poly.setPoints(diversionPath);
+      details.setDiversionPath(poly);
+      bean.setConditionDetails(details);
+    }
+    return bean;
   }
 
   private void fillResponse() {
