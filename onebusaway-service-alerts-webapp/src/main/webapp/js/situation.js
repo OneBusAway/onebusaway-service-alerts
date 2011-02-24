@@ -514,6 +514,15 @@ var oba_service_alerts_situation = function(data) {
 		var content = jQuery('<div/>');
 		content.addClass('stopSelectionDialog');
 
+		var dialogOptions = {
+			title : 'Select Stops',
+			modal : true,
+			width : '90%',
+			height : 700
+		};
+
+		content.dialog(dialogOptions);
+
 		var params = {};
 		params.stopClickHandler = function(stop) {
 			affectedVehicleJourneyStopCallClickHandler(entry, stop,
@@ -524,15 +533,6 @@ var oba_service_alerts_situation = function(data) {
 			params.directionId = entry.directionId;
 
 		var stopSelectionWidget = OBA.StopSelectionWidget(content, params);
-
-		var dialogOptions = {
-			title : 'Select Stops',
-			modal : true,
-			width : '90%',
-			height : 700
-		};
-
-		content.dialog(dialogOptions);
 	};
 
 	var affectedVehicleJourneyStopCallClickHandler = function(entry, stop, map) {
