@@ -1,33 +1,49 @@
 package org.onebusaway.service_alerts.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.onebusaway.service_alerts.model.beans.AbstractAlertBean;
-import org.onebusaway.utility.text.NaturalStringOrder;
+import org.onebusaway.service_alerts.model.properties.AlertProperties;
+import org.onebusaway.service_alerts.model.properties.AlertProperty;
 
 public class AlertBeanComparator implements Comparator<AbstractAlertBean> {
 
   @Override
   public int compare(AbstractAlertBean o1, AbstractAlertBean o2) {
 
-    String routeId1 = "";
-    String routeId2 = "";
+    AlertProperties key1 = o1.getKey();
+    AlertProperties key2 = o2.getKey();
 
-    if (o1.getRoute() != null)
-      routeId1 = o1.getRoute().getId();
-    if (o2.getRoute() != null)
-      routeId2 = o2.getRoute().getId();
+    Set<String> allKeys = new HashSet<String>();
+    allKeys.addAll(key1.getKeys());
+    allKeys.addAll(key2.getKeys());
 
-    int c = NaturalStringOrder.compareNatural(routeId1, routeId2);
+    List<String> allKeysInOrder = new ArrayList<String>(allKeys);
+    Collections.sort(allKeysInOrder);
 
-    if (c != 0)
-      return c;
+    for (String key : allKeysInOrder) {
+      AlertProperty p1 = key1.getProperty(key);
+      AlertProperty p2 = key2.getProperty(key);
 
-    c = o1.getRegion().compareTo(o2.getRegion());
+      String v1 = "";
+      String v2 = "";
 
-    if (c != 0)
-      return c;
+      if (p1 != null)
+        v1 = p1.getValue();
+      if (p2 != null)
+        v2 = p2.getValue();
 
-    return o1.getDescription().compareTo(o2.getDescription());
+      int rc = v1.compareTo(v2);
+
+      if (rc != 0)
+        return rc;
+    }
+
+    return 0;
   }
 }

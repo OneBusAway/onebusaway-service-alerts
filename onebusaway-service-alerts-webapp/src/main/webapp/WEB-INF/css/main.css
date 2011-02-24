@@ -218,17 +218,22 @@ div.routeMap {
 	height: 200px;
 }
 
-div.alertConfiguration {
+.situationConfiguration {
 	position: relative;
 } 
 
-.alertConfiguration-Map {
+.situationConfiguration-Map {
 	width: 200px;
 	height: 200px;	
 }
 
-table.alertConfiguration {
+.situationConfigurationContent {
 	position: absolute;
 	left: 220px;
 	top: 0px;	
+}
+
+.resolveSituationConfigurationsToUnresolvedAlertForm input[type='checkbox']{
+	width: 2em;
+	height: 2em;
 }

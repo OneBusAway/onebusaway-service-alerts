@@ -23,24 +23,24 @@
             <td><oba:date timeStyle="short"
                 value="#alert.timeOfLastUpdate" /></td>
         </tr>
-        <tr>
-            <td>Route:</td>
-            <td><oba:routeName value="#alert.route" /> - <oba:routeDescription
-                value="#alert.route" /></td>
-        </tr>
-        <tr>
-            <td>Region:</td>
-            <td><s:property value="#alert.region" /></td>
-        </tr>
-        <tr>
-            <td>Description:</td>
-            <td><s:property value="#alert.description" /></td>
-        </tr>
     </table>
+    
+    <h3>Group</h3>
+    
+    <s:component template="alert-properties.jspx">
+        <s:param name="properties" value="#alert.group"/>
+    </s:component>
+    
+    <h3>Key</h3>
+    
+    <s:component template="alert-properties.jspx">
+        <s:param name="properties" value="#alert.key"/>
+    </s:component>
 
+    <h3>Attached Situation Configurations</h3>
     <s:iterator value="#alert.configurations">
-        <s:component template="alert-configuration.jspx">
-            <s:param name="alertConfiguration" value="top" />
+        <s:component template="situation-configuration.jspx">
+            <s:param name="situationConfiguration" value="top" />
         </s:component>
     </s:iterator>
     

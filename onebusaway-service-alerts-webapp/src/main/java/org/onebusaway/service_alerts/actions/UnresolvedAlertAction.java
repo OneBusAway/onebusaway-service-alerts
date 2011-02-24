@@ -4,13 +4,11 @@ import java.util.List;
 
 import org.apache.struts2.convention.annotation.Result;
 import org.apache.struts2.convention.annotation.Results;
-import org.onebusaway.service_alerts.model.RouteAndRegionRef;
-import org.onebusaway.service_alerts.model.beans.AlertConfigurationBean;
+import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.beans.ResolvedAlertBean;
 import org.onebusaway.service_alerts.model.beans.UnresolvedAlertBean;
+import org.onebusaway.service_alerts.model.properties.AlertProperties;
 import org.onebusaway.service_alerts.services.AlertBeanService;
-import org.onebusaway.transit_data.model.StopsForRouteBean;
-import org.onebusaway.transit_data.services.TransitDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.ActionSupport;
@@ -28,8 +26,6 @@ public class UnresolvedAlertAction extends ActionSupport implements
 
   private AlertBeanService _alertService;
 
-  private TransitDataService _transitDataService;
-
   private String _id;
 
   private String _resolvedAlertId;
@@ -40,18 +36,11 @@ public class UnresolvedAlertAction extends ActionSupport implements
 
   private List<ResolvedAlertBean> _resolvedAlerts;
 
-  private List<AlertConfigurationBean> _potentialConfigurations;
-
-  private StopsForRouteBean _stopsForRoute;
+  private List<SituationConfiguration> _potentialConfigurations;
 
   @Autowired
   public void setAlertService(AlertBeanService alertService) {
     _alertService = alertService;
-  }
-
-  @Autowired
-  public void setTransitDataService(TransitDataService transitDataService) {
-    _transitDataService = transitDataService;
   }
 
   public void setId(String id) {
@@ -87,12 +76,8 @@ public class UnresolvedAlertAction extends ActionSupport implements
     return _resolvedAlerts;
   }
 
-  public List<AlertConfigurationBean> getPotentialConfigurations() {
+  public List<SituationConfiguration> getPotentialConfigurations() {
     return _potentialConfigurations;
-  }
-
-  public StopsForRouteBean getStopsForRoute() {
-    return _stopsForRoute;
   }
 
   @Validations(requiredStrings = {@RequiredStringValidator(fieldName = "id")})
@@ -104,11 +89,10 @@ public class UnresolvedAlertAction extends ActionSupport implements
     if (_model == null)
       return ERROR;
 
-    RouteAndRegionRef rar = _model.getAsRouteAndRegion();
+    AlertProperties group = _model.getGroup();
 
-    _resolvedAlerts = _alertService.getResolvedAlertsWithRouteAndRegion(rar);
-    _potentialConfigurations = _alertService.getPotentialConfigurationsWithRouteAndRegion(rar);
-    _stopsForRoute = _transitDataService.getStopsForRoute(rar.getRouteId());
+    _resolvedAlerts = _alertService.getResolvedAlertsWithGroup(group);
+    _potentialConfigurations = _alertService.getPotentialConfigurationsWithGroup(group);
 
     return SUCCESS;
   }

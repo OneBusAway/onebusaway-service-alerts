@@ -1,5 +1,7 @@
 package org.onebusaway.service_alerts.model;
 
+import org.onebusaway.service_alerts.model.properties.AlertProperties;
+
 public class AbstractAlert {
 
   private String id;
@@ -8,11 +10,11 @@ public class AbstractAlert {
 
   private long timeOfLastUpdate;
 
-  private String routeId;
+  private String dataSourceId;
 
-  private String region;
+  private AlertProperties group;
 
-  private String description;
+  private AlertProperties key;
 
   public String getId() {
     return id;
@@ -38,31 +40,27 @@ public class AbstractAlert {
     this.timeOfLastUpdate = timeOfLastUpdate;
   }
 
-  public String getRouteId() {
-    return routeId;
+  public String getDataSourceId() {
+    return dataSourceId;
   }
 
-  public void setRouteId(String routeId) {
-    this.routeId = routeId;
+  public void setDataSourceId(String dataSourceId) {
+    this.dataSourceId = dataSourceId;
   }
 
-  public String getRegion() {
-    return region;
+  public AlertProperties getGroup() {
+    return group;
   }
 
-  public void setRegion(String region) {
-    this.region = region;
+  public void setGroup(AlertProperties group) {
+    this.group = group;
   }
 
-  public String getDescription() {
-    return description;
+  public AlertProperties getKey() {
+    return key;
   }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public AlertDescriptionKey getKey() {
-    return new AlertDescriptionKey(routeId, region, description);
+  public void setKey(AlertProperties key) {
+    this.key = key;
   }
 }

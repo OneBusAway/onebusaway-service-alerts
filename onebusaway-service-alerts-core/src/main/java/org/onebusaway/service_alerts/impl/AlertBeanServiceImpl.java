@@ -5,18 +5,15 @@ import java.util.Collection;
 import java.util.List;
 
 import org.onebusaway.service_alerts.model.AbstractAlert;
-import org.onebusaway.service_alerts.model.AlertConfiguration;
 import org.onebusaway.service_alerts.model.ResolvedAlert;
-import org.onebusaway.service_alerts.model.RouteAndRegionRef;
+import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.UnresolvedAlert;
 import org.onebusaway.service_alerts.model.beans.AbstractAlertBean;
-import org.onebusaway.service_alerts.model.beans.AlertConfigurationBean;
 import org.onebusaway.service_alerts.model.beans.ResolvedAlertBean;
 import org.onebusaway.service_alerts.model.beans.UnresolvedAlertBean;
+import org.onebusaway.service_alerts.model.properties.AlertProperties;
 import org.onebusaway.service_alerts.services.AlertBeanService;
 import org.onebusaway.service_alerts.services.AlertService;
-import org.onebusaway.transit_data.model.RouteBean;
-import org.onebusaway.transit_data.services.TransitDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,16 +22,9 @@ class AlertBeanServiceImpl implements AlertBeanService {
 
   private AlertService _alertService;
 
-  private TransitDataService _transitDataService;
-
   @Autowired
   public void setAlertService(AlertService alertService) {
     _alertService = alertService;
-  }
-
-  @Autowired
-  public void setTransitDataService(TransitDataService transitDataService) {
-    _transitDataService = transitDataService;
   }
 
   @Override
@@ -54,20 +44,21 @@ class AlertBeanServiceImpl implements AlertBeanService {
   @Override
   public List<ResolvedAlertBean> getResolvedAlerts() {
     Collection<ResolvedAlert> alerts = _alertService.getResolvedAlerts();
-    List<ResolvedAlertBean> beans = new ArrayList<ResolvedAlertBean>();
-    for (ResolvedAlert alert : alerts)
-      beans.add(getResolvedAlertAsBean(alert));
-    return beans;
+    return resolvedAlertBeans(alerts);
   }
 
   @Override
-  public List<ResolvedAlertBean> getResolvedAlertsWithRouteAndRegion(
-      RouteAndRegionRef routeAndRegion) {
-    Collection<ResolvedAlert> alerts = _alertService.getResolvedAlertsWithRouteAndRegion(routeAndRegion);
-    List<ResolvedAlertBean> beans = new ArrayList<ResolvedAlertBean>();
-    for (ResolvedAlert alert : alerts)
-      beans.add(getResolvedAlertAsBean(alert));
-    return beans;
+  public List<ResolvedAlertBean> getResolvedAlertsWithGroup(
+      AlertProperties group) {
+    Collection<ResolvedAlert> alerts = _alertService.getResolvedAlertsWithGroup(group);
+    return resolvedAlertBeans(alerts);
+  }
+
+  @Override
+  public List<ResolvedAlertBean> getResolvedAlertsForSituationConfigurationId(
+      String id) {
+    Collection<ResolvedAlert> alerts = _alertService.getResolvedAlertsForSituationConfigurationId(id);
+    return resolvedAlertBeans(alerts);
   }
 
   @Override
@@ -76,19 +67,15 @@ class AlertBeanServiceImpl implements AlertBeanService {
   }
 
   @Override
-  public List<AlertConfigurationBean> getPotentialConfigurationsWithRouteAndRegion(
-      RouteAndRegionRef ref) {
-    Collection<AlertConfiguration> configs = _alertService.getPotentialConfigurationsWithRouteAndRegion(ref);
-    List<AlertConfigurationBean> beans = new ArrayList<AlertConfigurationBean>();
-    for (AlertConfiguration config : configs)
-      beans.add(getAlertConfigurationAsBean(config));
-    return beans;
+  public List<SituationConfiguration> getPotentialConfigurationsWithGroup(
+      AlertProperties group) {
+    Collection<SituationConfiguration> configs = _alertService.getPotentialConfigurationsWithGroup(group);
+    return new ArrayList<SituationConfiguration>(configs);
   }
 
   @Override
-  public AlertConfigurationBean getAlertConfigurationForId(String id) {
-    AlertConfiguration config = _alertService.getAlertConfigurationForId(id);
-    return getAlertConfigurationAsBean(config);
+  public SituationConfiguration getSituationConfigurationForId(String id) {
+    return _alertService.getSituationConfigurationForId(id);
   }
 
   @Override
@@ -108,6 +95,14 @@ class AlertBeanServiceImpl implements AlertBeanService {
   /****
    * 
    ****/
+
+  private List<ResolvedAlertBean> resolvedAlertBeans(
+      Collection<ResolvedAlert> alerts) {
+    List<ResolvedAlertBean> beans = new ArrayList<ResolvedAlertBean>();
+    for (ResolvedAlert alert : alerts)
+      beans.add(getResolvedAlertAsBean(alert));
+    return beans;
+  }
 
   private UnresolvedAlertBean getUnresolvedAlertAsBean(UnresolvedAlert alert) {
 
@@ -129,9 +124,9 @@ class AlertBeanServiceImpl implements AlertBeanService {
     ResolvedAlertBean bean = new ResolvedAlertBean();
     populateAlertBean(alert, bean);
 
-    List<AlertConfigurationBean> beans = new ArrayList<AlertConfigurationBean>();
-    for (AlertConfiguration config : alert.getConfigurations()) {
-      beans.add(getAlertConfigurationAsBean(config));
+    List<SituationConfiguration> beans = new ArrayList<SituationConfiguration>();
+    for (SituationConfiguration config : alert.getConfigurations()) {
+      beans.add(config);
     }
     bean.setConfigurations(beans);
 
@@ -140,40 +135,9 @@ class AlertBeanServiceImpl implements AlertBeanService {
 
   private void populateAlertBean(AbstractAlert alert, AbstractAlertBean bean) {
     bean.setId(alert.getId());
-    bean.setRegion(alert.getRegion());
-    bean.setDescription(alert.getDescription());
+    bean.setGroup(alert.getGroup());
+    bean.setKey(alert.getKey());
     bean.setTimeOfCreation(alert.getTimeOfCreation());
     bean.setTimeOfLastUpdate(alert.getTimeOfLastUpdate());
-
-    if( alert.getRouteId() != null ) {
-      RouteBean route = _transitDataService.getRouteForId(alert.getRouteId());
-      bean.setRoute(route);
-    }
-  }
-
-  private AlertConfigurationBean getAlertConfigurationAsBean(
-      AlertConfiguration config) {
-
-    if (config == null)
-      return null;
-
-    AlertConfigurationBean bean = new AlertConfigurationBean();
-
-    bean.setDescriptions(config.getDescriptions());
-    bean.setDirectionId(config.getDirectionId());
-    bean.setId(config.getId());
-    bean.setRegion(config.getRegion());
-    bean.setReroteAsPolylineString(config.getReroteAsPolylineString());
-    bean.setReroute(config.getReroute());
-
-    if( config.getRouteId() != null) {
-      RouteBean route = _transitDataService.getRouteForId(config.getRouteId());
-      bean.setRoute(route);
-    }
-
-    bean.setStopIds(config.getStopIds());
-    bean.setType(config.getType());
-
-    return bean;
   }
 }

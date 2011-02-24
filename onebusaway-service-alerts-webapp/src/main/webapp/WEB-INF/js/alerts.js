@@ -71,12 +71,12 @@ var obaKingCountyMetroAlertsFactory = function() {
 		};
 	};
 	
-	that.setupAlertConfigurationMap = function(alertConfigId,mapElementId, mapControlsId) {
+	that.setupSituationConfigurationMap = function(situationConfigId,mapElementId, mapControlsId) {
 		var mapElement = jQuery(mapElementId).get(0);
 		var map = OBA.Maps.map(mapElement);
 		var url = OBA.Config.baseUrl + "/alert-configuration!json.action";
 		var handler = alertConfigurationHandler(map, mapControlsId);
-		jQuery.getJSON(url, {id:alertConfigId}, handler);
+		jQuery.getJSON(url, {id:situationConfigId}, handler);
 	};
 	
 	that.setupRouteMap = function(polylines,mapElementId) {

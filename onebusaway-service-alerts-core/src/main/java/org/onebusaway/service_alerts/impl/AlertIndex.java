@@ -8,27 +8,31 @@ import java.util.Map;
 import java.util.Set;
 
 import org.onebusaway.service_alerts.model.AbstractAlert;
-import org.onebusaway.service_alerts.model.AlertDescriptionKey;
-import org.onebusaway.service_alerts.model.RouteAndRegionRef;
+import org.onebusaway.service_alerts.model.properties.AlertProperties;
 
 public class AlertIndex<T extends AbstractAlert> {
 
-  private Map<AlertDescriptionKey, T> _alerts = new HashMap<AlertDescriptionKey, T>();
+  private Map<AlertProperties, T> _alerts = new HashMap<AlertProperties, T>();
 
   private Map<String, T> _alertsById = new HashMap<String, T>();
 
-  private Map<RouteAndRegionRef, Set<T>> _alertsByRouteAndRegion = new HashMap<RouteAndRegionRef, Set<T>>();
+  private Map<AlertProperties, Set<T>> _alertsByGroup = new HashMap<AlertProperties, Set<T>>();
+
+  private Map<String, Set<T>> _alertsByDataSourceId = new HashMap<String, Set<T>>();
 
   public void addAlert(T alert) {
 
-    AlertDescriptionKey key = alert.getKey();
+    AlertProperties key = alert.getKey();
+    AlertProperties group = alert.getGroup();
     T existingAlert = _alerts.put(key, alert);
 
-    Set<T> set = _alertsByRouteAndRegion.get(key.getRouteAndRegion());
+    _alertsById.put(alert.getId(), alert);
+
+    Set<T> set = _alertsByGroup.get(group);
 
     if (set == null) {
       set = new HashSet<T>();
-      _alertsByRouteAndRegion.put(key.getRouteAndRegion(), set);
+      _alertsByGroup.put(group, set);
     }
 
     if (existingAlert != null) {
@@ -37,12 +41,23 @@ public class AlertIndex<T extends AbstractAlert> {
     }
 
     set.add(alert);
-    _alertsById.put(alert.getId(), alert);
+
+    /****
+     * Alerts by Data Source Id
+     ****/
+
+    Set<T> alertsForDataSourceId = _alertsByDataSourceId.get(alert.getDataSourceId());
+    if (alertsForDataSourceId == null) {
+      alertsForDataSourceId = new HashSet<T>();
+      _alertsByDataSourceId.put(alert.getDataSourceId(), alertsForDataSourceId);
+    }
+    alertsForDataSourceId.add(alert);
   }
 
   public void removeAlert(T alert) {
 
-    AlertDescriptionKey key = alert.getKey();
+    AlertProperties key = alert.getKey();
+    AlertProperties group = alert.getGroup();
     T existingAlert = _alerts.remove(key);
 
     if (existingAlert == null)
@@ -50,11 +65,19 @@ public class AlertIndex<T extends AbstractAlert> {
 
     _alertsById.remove(existingAlert.getId());
 
-    Set<T> set = _alertsByRouteAndRegion.get(key.getRouteAndRegion());
+    Set<T> set = _alertsByGroup.get(group);
 
     if (set != null) {
       set.remove(existingAlert);
     }
+
+    /****
+     * Alerts by Data Source Id
+     ****/
+
+    Set<T> alertsForDataSourceId = _alertsByDataSourceId.get(alert.getDataSourceId());
+    if (alertsForDataSourceId != null)
+      alertsForDataSourceId.remove(alert);
   }
 
   public Collection<T> getAlerts() {
@@ -65,16 +88,21 @@ public class AlertIndex<T extends AbstractAlert> {
     return _alertsById.get(id);
   }
 
-  public T getAlertForKey(AlertDescriptionKey key) {
+  public T getAlertForKey(AlertProperties key) {
     return _alerts.get(key);
   }
 
-  public Collection<T> getAlertsForRouteAndRegion(
-      RouteAndRegionRef routeAndRegion) {
-    Set<T> set = _alertsByRouteAndRegion.get(routeAndRegion);
+  public Collection<T> getAlertsForGroup(AlertProperties group) {
+    Set<T> set = _alertsByGroup.get(group);
     if (set == null)
       return Collections.emptySet();
     return set;
   }
 
+  public Collection<T> getAlertsForDataSourceId(String dataSourceId) {
+    Set<T> set = _alertsByDataSourceId.get(dataSourceId);
+    if (set == null)
+      return Collections.emptySet();
+    return set;
+  }
 }

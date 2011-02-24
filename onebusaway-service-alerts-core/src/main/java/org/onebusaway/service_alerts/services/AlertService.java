@@ -3,11 +3,10 @@ package org.onebusaway.service_alerts.services;
 import java.util.Collection;
 import java.util.List;
 
-import org.onebusaway.service_alerts.model.AlertConfiguration;
-import org.onebusaway.service_alerts.model.AlertDescription;
 import org.onebusaway.service_alerts.model.ResolvedAlert;
-import org.onebusaway.service_alerts.model.RouteAndRegionRef;
+import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.UnresolvedAlert;
+import org.onebusaway.service_alerts.model.properties.AlertProperties;
 
 public interface AlertService {
 
@@ -19,20 +18,20 @@ public interface AlertService {
 
   public Collection<ResolvedAlert> getResolvedAlerts();
 
-  public Collection<ResolvedAlert> getResolvedAlertsWithRouteAndRegion(
-      RouteAndRegionRef routeAndRegion);
+  public Collection<ResolvedAlert> getResolvedAlertsWithGroup(
+      AlertProperties group);
 
-  public Collection<AlertConfiguration> getPotentialConfigurationsWithRouteAndRegion(
-      RouteAndRegionRef ref);
+  public Collection<ResolvedAlert> getResolvedAlertsForSituationConfigurationId(
+      String id);
 
-  public AlertConfiguration getAlertConfigurationForId(String id);
+  public Collection<SituationConfiguration> getPotentialConfigurationsWithGroup(
+      AlertProperties group);
+
+  public SituationConfiguration getSituationConfigurationForId(String id);
 
   public void resolveAlertToExistingAlert(String unresolvedAlertId,
       String existingResolvedAlertId);
 
   public void resolveAlertToExistingConfigurations(String unresolvedAlertId,
       List<String> alertConfigurationIds);
-
-  public void setActiveAlerts(List<AlertDescription> activeAlerts);
-
 }

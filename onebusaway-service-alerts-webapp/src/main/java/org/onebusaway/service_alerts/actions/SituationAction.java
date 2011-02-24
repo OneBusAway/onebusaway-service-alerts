@@ -1,5 +1,6 @@
 package org.onebusaway.service_alerts.actions;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ import org.onebusaway.api.ResponseCodes;
 import org.onebusaway.api.model.ResponseBean;
 import org.onebusaway.api.model.transit.BeanFactoryV2;
 import org.onebusaway.api.model.transit.EntryWithReferencesBean;
+import org.onebusaway.collections.CollectionsLibrary;
 import org.onebusaway.geospatial.model.EncodedPolylineBean;
 import org.onebusaway.presentation.bundles.ResourceBundleSupport;
 import org.onebusaway.presentation.bundles.service_alerts.EnvironmentReasons;
@@ -19,6 +21,9 @@ import org.onebusaway.presentation.bundles.service_alerts.ServiceConditions;
 import org.onebusaway.presentation.impl.StackInterceptor.AddToStack;
 import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.SituationConfigurationV2Bean;
+import org.onebusaway.service_alerts.model.beans.ResolvedAlertBean;
+import org.onebusaway.service_alerts.model.properties.AlertProperties;
+import org.onebusaway.service_alerts.services.AlertBeanService;
 import org.onebusaway.service_alerts.services.SituationService;
 import org.onebusaway.transit_data.model.AgencyBean;
 import org.onebusaway.transit_data.model.RouteBean;
@@ -50,7 +55,11 @@ public class SituationAction extends ActionSupport implements
 
   private static final long serialVersionUID = 1L;
 
+  private TransitDataService _transitDataService;
+
   private SituationService _situationService;
+
+  private AlertBeanService _alertBeanService;
 
   private String _id;
 
@@ -64,9 +73,9 @@ public class SituationAction extends ActionSupport implements
 
   private SituationConfiguration _model = new SituationConfiguration();
 
-  private ResponseBean _response;
+  private List<String> _groupProperty = new ArrayList<String>();
 
-  private TransitDataService _transitDataService;
+  private ResponseBean _response;
 
   private String _agencyId;
 
@@ -75,6 +84,8 @@ public class SituationAction extends ActionSupport implements
   private ConsequenceFormBean _consequence = new ConsequenceFormBean();
 
   private int _index;
+
+  private List<ResolvedAlertBean> _resolvedAlerts;
 
   @Autowired
   public void setTransitDataService(TransitDataService transitDataService) {
@@ -86,12 +97,25 @@ public class SituationAction extends ActionSupport implements
     _situationService = situationService;
   }
 
+  @Autowired
+  public void setAlertBeanService(AlertBeanService alertBeanService) {
+    _alertBeanService = alertBeanService;
+  }
+
   public void setId(String id) {
     _id = id;
   }
 
   public String getId() {
     return _id;
+  }
+
+  public void setGroupProperty(List<String> groupProperty) {
+    _groupProperty = groupProperty;
+  }
+
+  public List<String> getGroupProperty() {
+    return _groupProperty;
   }
 
   public void setAgencyId(String agencyId) {
@@ -143,6 +167,10 @@ public class SituationAction extends ActionSupport implements
     return _model;
   }
 
+  public List<ResolvedAlertBean> getResolvedAlerts() {
+    return _resolvedAlerts;
+  }
+
   public List<SituationConfiguration> getModels() {
     return _models;
   }
@@ -161,7 +189,16 @@ public class SituationAction extends ActionSupport implements
   }
 
   public String create() {
-    _model = _situationService.createSituation();
+
+    AlertProperties group = null;
+    if (!CollectionsLibrary.isEmpty(_groupProperty)) {
+      group = new AlertProperties();
+      for (String token : _groupProperty)
+        group.putEncodedProperty(token);
+    }
+
+    _model = _situationService.createSituation(group);
+
     fillResponse();
     return "redirectToSituation";
   }
@@ -339,6 +376,8 @@ public class SituationAction extends ActionSupport implements
 
     if (_model == null)
       return;
+    
+    _resolvedAlerts = _alertBeanService.getResolvedAlertsForSituationConfigurationId(_model.getId());
 
     BeanFactoryV2 factory = new BeanFactoryV2(true);
 

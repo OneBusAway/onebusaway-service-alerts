@@ -151,6 +151,42 @@ jQuery(document).ready(function() {
 
 <p><a id="addConsequence" href="javascript:void(0)">Add a consequence</a></p>
 
+<h3>Alert Matching</h3>
+
+<h4>Group:</h4>
+
+<p>The "group" terms will be used to suggest potential matches for incoming unresolved service alerts:</p>
+
+<s:component template="alert-properties.jspx">
+    <s:param name="properties" value="group"/>
+</s:component>
+
+<h4>Keys:</h4>
+
+<p>The "key" terms will be used to automatically match incoming unresolved service alerts:</p>
+
+<s:iterator value="keys">
+<p>Key:</p>
+<s:component template="alert-properties.jspx">
+    <s:param name="properties" value="top"/>
+</s:component>
+</s:iterator>
+
+<h4>Active Matched Alerts</h4>
+
+<p>These are active alerts that match to this situation configuration.</p>
+
+<ul>
+<s:iterator>
+    <s:url action="resolved-alert">
+        <s:param name="id" value="id"/>
+    </s:url>
+    <li><s:a href="%{url}"></s:a></li>
+</s:iterator>
+</ul>
+
+
+
 <!-- Templates -->
 <s:component template="oba-stop-selection-widget.ftl"/>
 

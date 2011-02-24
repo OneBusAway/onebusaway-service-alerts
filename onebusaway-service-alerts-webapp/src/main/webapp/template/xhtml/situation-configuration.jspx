@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jsp:root version="1.2" xmlns:jsp="http://java.sun.com/JSP/Page"
+    xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:s="/struts-tags"
+    xmlns:oba="/oba-tags">
+
+    <jsp:directive.page contentType="text/html" />
+    <s:set var="config" value="parameters.situationConfiguration" />
+
+    <div class="situationConfiguration">
+    
+    <s:set var="map_container_div_id">situationConfiguration-Map-<s:property value="#config.id" /></s:set>
+    
+    <jsp:element name="div">
+        <jsp:attribute name="id">
+            <s:property value="#map_container_div_id" />
+        </jsp:attribute>
+        <jsp:attribute name="class">situationConfiguration-MapContainer</jsp:attribute>
+        <div class="situationConfiguration-Map"><jsp:text></jsp:text></div>
+        <div class="situationConfiguration-MapControls"><jsp:text></jsp:text></div>        
+    </jsp:element>
+    
+    <!--  -->
+    <script type="text/javascript">
+      (function() {
+        var situationConfigId = '<s:property value="#config.id" />';
+        var mapDivId = '#<s:property value="#map_container_div_id" /> > .situationConfiguration-Map';
+        var mapControlsDivId = '#<s:property value="#map_container_div_id" /> > .situationConfiguration-MapControls';        
+        var callback = function() {
+            OBA.KingCountyMetroAlerts.setupSituationConfigurationMap(situationConfigId,mapDivId,mapControlsDivId);
+        }; 
+        jQuery(document).ready(callback);
+      })();
+    </script>
+
+    <div class="situationConfigurationContent">
+    
+    <h4>Manage:</h4>
+    <ul>
+        <s:url var="url" action="situation">
+            <s:param name="id" value="#config.id"/>
+        </s:url>
+        <li><s:a href="%{url}">Edit Situation Configuration</s:a></li>
+    </ul>
+    
+    <h4>Group:</h4>
+    <s:component template="alert-properties.jspx">
+        <s:param name="properties" value="#config.group"/>
+    </s:component>
+    
+    <h4>Keys:</h4>
+    <s:iterator value="#config.keys">
+        <p>Key:</p>
+        <s:component template="alert-properties.jspx">
+            <s:param name="properties" value="top"/>
+        </s:component>
+    </s:iterator>
+    </div>
+
+</div>
+    
+</jsp:root>

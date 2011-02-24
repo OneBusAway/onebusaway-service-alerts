@@ -1,7 +1,6 @@
 package org.onebusaway.service_alerts.model.beans;
 
-import org.onebusaway.service_alerts.model.RouteAndRegionRef;
-import org.onebusaway.transit_data.model.RouteBean;
+import org.onebusaway.service_alerts.model.properties.AlertProperties;
 
 public class AbstractAlertBean {
 
@@ -11,11 +10,9 @@ public class AbstractAlertBean {
 
   private long timeOfLastUpdate;
 
-  private RouteBean route;
+  private AlertProperties group;
 
-  private String region;
-
-  private String description;
+  private AlertProperties key;
 
   public String getId() {
     return id;
@@ -41,31 +38,19 @@ public class AbstractAlertBean {
     this.timeOfLastUpdate = timeOfLastUpdate;
   }
 
-  public RouteBean getRoute() {
-    return route;
+  public AlertProperties getGroup() {
+    return group;
   }
 
-  public void setRoute(RouteBean route) {
-    this.route = route;
+  public void setGroup(AlertProperties group) {
+    this.group = group;
   }
 
-  public String getRegion() {
-    return region;
+  public AlertProperties getKey() {
+    return key;
   }
 
-  public void setRegion(String region) {
-    this.region = region;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-  
-  public RouteAndRegionRef getAsRouteAndRegion() {
-    return new RouteAndRegionRef(route.getId(), region);
+  public void setKey(AlertProperties key) {
+    this.key = key;
   }
 }
