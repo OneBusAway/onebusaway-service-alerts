@@ -144,6 +144,10 @@ h6 {
 	line-height: 18px
 }
 
+.clear {
+	clear: both
+}
+
 /****
  *
  ****/

@@ -30,24 +30,31 @@
 <s:if test="resolvedAlerts.empty">
 <p>No existing alerts match this group.</p>
 </s:if>
+<s:else>
+
+<p>Existing alerts that match this group:</p>
 
 <s:iterator value="resolvedAlerts">
-    <s:component templateDir="WEB-INF/content" theme="templates"
-        template="resolved-alert.jspx">
+    <h4>Existing Resolved Alert:</h4>
+    <s:component template="resolved-alert.jspx">
         <s:param name="alert" value="top" />
     </s:component>
-    <p><s:a action="unresolved-alert!resolveToExistingAlert">
+    <s:url var="url" action="unresolved-alert!resolveToExistingAlert">
         <s:param name="id" value="model.id"/>
-        <s:param name="resolvedAlertId" value="id" />Resolve to this existing alert</s:a></p>
+        <s:param name="resolvedAlertId" value="id" />
+    </s:url>
+    <p><s:a href="%{url}">Resolve to this existing alert</s:a></p>
 </s:iterator>
+</s:else>
 
 <h3>Potential Situation Configurations</h3>
 
-<s:if test="potentialConfigurations.empty">
-<s:url var="url" action="situation!create">
+<s:url var="createSituationUrl" action="situation!create">
     <s:param name="groupProperty" value="fullDescription.group.asList"/>
 </s:url>
-<p>No existing configurations match this group.  Perhaps you might <s:a href="%{url}">create one</s:a>?</p>
+
+<s:if test="potentialConfigurations.empty">
+<p>No existing configurations match this group.  Perhaps you might <s:a href="%{createSituationUrl}">create one</s:a>?</p>
 </s:if>
 <s:else>
 
@@ -64,6 +71,8 @@
 <s:hidden name="id" value="%{model.id}"/>
 <s:submit value="Resolve" theme="simple"/>
 </form>
+
+<p>Or perhaps you might <s:a href="%{createSituationUrl}">create one</s:a>?</p>
 
 </s:else>
 

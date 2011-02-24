@@ -55,7 +55,6 @@
         </s:component>
     </s:iterator>
     </div>
-
 </div>
     
 </jsp:root>
