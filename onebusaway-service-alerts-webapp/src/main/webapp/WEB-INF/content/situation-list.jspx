@@ -45,5 +45,7 @@
 
 </s:else>
 
+<p><s:a action="situation!saveAll">Save All</s:a></p>
+
 </body>
 </html>

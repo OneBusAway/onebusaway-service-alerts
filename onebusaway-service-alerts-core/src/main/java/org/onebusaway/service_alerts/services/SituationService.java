@@ -9,6 +9,8 @@ import org.onebusaway.transit_data.model.service_alerts.SituationBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationConsequenceBean;
 
 public interface SituationService {
+  
+  public void saveAllAlerts();
 
   public SituationConfiguration createSituation(AlertProperties group);
 

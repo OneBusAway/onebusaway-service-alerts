@@ -49,7 +49,7 @@ import com.opensymphony.xwork2.ModelDriven;
 @Results({
     @Result(type = "redirectAction", name = "redirectToSituation", params = {
         "actionName", "situation", "id", "${id}", "parse", "true"}),
-    @Result(type = "redirectAction", name = "delete", params = {
+    @Result(type = "redirectAction", name = "redirectToSituations", params = {
         "actionName", "situation!list"}),
     @Result(type = "json", name = "json", params = {"root", "response"})})
 @AddToStack("consequence")
@@ -265,7 +265,12 @@ public class SituationAction extends ActionSupport implements
 
   public String delete() {
     _situationService.deleteSituationForId(_model.getId());
-    return "delete";
+    return "redirectToSituations";
+  }
+  
+  public String saveAll() {
+    _situationService.saveAllAlerts();
+    return "redirectToSituations";
   }
 
   public String updateAffectedAgency() {

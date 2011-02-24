@@ -32,6 +32,8 @@ import org.onebusaway.transit_data.model.service_alerts.SituationBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationConditionDetailsBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationConsequenceBean;
 import org.onebusaway.utility.ObjectSerializationLibrary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -67,6 +69,8 @@ import uk.org.siri.siri.WorkflowStatusEnumeration;
 
 @Component
 class SituationServiceImpl implements SituationService {
+
+  private static Logger _log = LoggerFactory.getLogger(SituationServiceImpl.class);
 
   private SiriService _sirivService;
 
@@ -104,16 +108,27 @@ class SituationServiceImpl implements SituationService {
   }
 
   @PreDestroy
-  public void stop() throws IOException {
-    File path = _bundle.getSituationConfigurationsPath();
-    Collection<SituationConfiguration> configs = _configurations.getConfigurations();
-    configs = new ArrayList<SituationConfiguration>(configs);
-    ObjectSerializationLibrary.writeObject(path, configs);
+  public void stop() {
+    saveAllAlerts();
   }
 
   /****
    * 
    ****/
+
+  @Override
+  public void saveAllAlerts() {
+
+    File path = _bundle.getSituationConfigurationsPath();
+
+    try {
+      Collection<SituationConfiguration> configs = _configurations.getConfigurations();
+      configs = new ArrayList<SituationConfiguration>(configs);
+      ObjectSerializationLibrary.writeObject(path, configs);
+    } catch (Exception ex) {
+      _log.warn("error saving alerts to file " + path, ex);
+    }
+  }
 
   @Override
   public SituationConfiguration createSituation(AlertProperties group) {
