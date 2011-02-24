@@ -389,7 +389,11 @@ var oba_service_alerts_situation = function(data) {
 		content.removeClass('routeEntryTemplate');
 		content.addClass('routeEntry');
 
-		content.find('h2').text(OBA.Presentation.getNameForRoute(route));
+		var name = OBA.Presentation.getNameForRoute(route);
+		if( route.agency && route.agency.name )
+			name += ' - ' + route.agency.name;
+		
+		content.find('h2').text(name);
 		content.find('p>a').click(function() {
 			updateAffectedVehicleJourney(route.id, null, true);
 			parentContent.dialog('close');
@@ -453,6 +457,11 @@ var oba_service_alerts_situation = function(data) {
 						showRoute(parentContent, route, stopsForRoute);
 					});
 				});
+				
+				var agencyNameElement = content.find('span.agencyName');
+				var agency = route.agency || {};
+				agencyNameElement.text(agency.name);
+				
 				content.appendTo(list);
 			});
 		}
@@ -479,8 +488,18 @@ var oba_service_alerts_situation = function(data) {
 
 			OBA.Api.routesForLocation(params, function(routes) {
 				showRoutes(content, routes);
-
-				var list = jQuery('<ul/>');
+			});
+		});
+		
+		var routeIdInput = content.find('.routeIdInput');
+		var routeIdButton = content.find('.routeIdButton');
+		
+		routeIdButton.click(function() {
+			var text = routeIdInput.val();
+			if (text.length == 0)
+				return;
+			OBA.Api.route(text, function(route) {
+				showRoutes(content, {list:[route]});
 			});
 		});
 

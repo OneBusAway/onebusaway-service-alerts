@@ -1,7 +1,13 @@
 package org.onebusaway.service_alerts.model.properties;
 
-public class AlertProperty {
+import java.io.Serializable;
+
+public final class AlertProperty implements Serializable {
+
+  private static final long serialVersionUID = 1L;
+
   private final EAlertPropertyType type;
+ 
   private final String value;
 
   public AlertProperty(EAlertPropertyType type, String value) {

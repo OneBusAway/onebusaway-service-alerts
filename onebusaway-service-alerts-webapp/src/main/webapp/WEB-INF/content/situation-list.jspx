@@ -21,14 +21,28 @@
 
 <p><s:a action="situation!create">Create a New Service Alert</s:a></p>
 
-<ul>
+    <table class="alertsTable">
+        <thead>
+            <tr>
+                <td><s:a action="situation!list"><s:param name="sort" value="'summary'"/>Summary</s:a></td>
+                <td><s:a action="situation!list"><s:param name="sort" value="'visible'"/>Visible</s:a></td>
+                <td>Action</td>
+            </tr>
+        </thead>
+        <tbody>
+
 <s:iterator value="models">
 <s:url var="url" action="situation">
     <s:param name="id" value="id"/>
 </s:url>
-<li><s:a href="%{url}">Service Alert <s:property value="id"/></s:a></li>
+<tr>
+<td><s:property value="situation.summary.value"/></td><td><s:property value="visible"/></td><td><s:a href="%{url}">View</s:a></td>
+</tr>
 </s:iterator>
-</ul>
+
+</tbody>
+</table>
+
 </s:else>
 
 </body>

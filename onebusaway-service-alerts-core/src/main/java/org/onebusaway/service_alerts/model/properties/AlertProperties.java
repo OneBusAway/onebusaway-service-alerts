@@ -1,12 +1,15 @@
 package org.onebusaway.service_alerts.model.properties;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public final class AlertProperties {
+public final class AlertProperties implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   private Map<String, AlertProperty> properties = new HashMap<String, AlertProperty>();
 
@@ -31,7 +34,8 @@ public final class AlertProperties {
     if (index == -1)
       throw new IllegalArgumentException("invalid encoded property: " + token);
 
-    EAlertPropertyType type = EAlertPropertyType.valueOf(token.substring(0,index));
+    EAlertPropertyType type = EAlertPropertyType.valueOf(token.substring(0,
+        index));
     String value = token.substring(index + 1);
 
     putProperty(key, type, value);

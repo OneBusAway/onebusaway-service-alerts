@@ -124,10 +124,12 @@ jQuery(document).ready(function() {
 <h2>Search for a route:</h2>
 <p><input class="routeNameInput" type="text" /> <input class="routeNameSearchButton" type="button" value="Search"/></p>
 <div class="routeSearchResults"><jsp:text></jsp:text></div>
+<h4>Or specify a raw route id:</h4>
+<p><input class="routeIdInput" type="text" /> <input class="routeIdButton" type="button" value="Add"/></p>
 </div>
 
 <ul style="display: none">
-<li class="routeItemTemplate"><a href="javascript:void(0)">Route Name</a></li>
+<li class="routeItemTemplate"><a href="javascript:void(0)">Route Name</a> - <span class="agencyName">Agency</span></li>
 </ul>
 
 <div class="routeEntryTemplate" style="display: none">
@@ -171,18 +173,20 @@ jQuery(document).ready(function() {
 
 <h4>Active Matched Alerts</h4>
 
+<s:if test="resolvedAlerts.empty">
+<p>These are no active alerts that match to this situation configuration.</p>
+</s:if>
+<s:else>
 <p>These are active alerts that match to this situation configuration.</p>
-
 <ul>
-<s:iterator>
-    <s:url action="resolved-alert">
+<s:iterator value="resolvedAlerts">
+    <s:url var="url" action="resolved-alert">
         <s:param name="id" value="id"/>
     </s:url>
-    <li><s:a href="%{url}"></s:a></li>
+    <li>Resolved alert: <s:property value="key"/> - <s:a href="%{url}">View</s:a></li>
 </s:iterator>
 </ul>
-
-
+</s:else>
 
 <!-- Templates -->
 <s:component template="oba-stop-selection-widget.ftl"/>

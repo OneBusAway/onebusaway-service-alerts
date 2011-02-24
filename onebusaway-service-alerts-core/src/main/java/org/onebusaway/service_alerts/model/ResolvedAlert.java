@@ -2,7 +2,9 @@ package org.onebusaway.service_alerts.model;
 
 import java.util.List;
 
-public class ResolvedAlert extends AbstractAlert {
+public final class ResolvedAlert extends AbstractAlert {
+
+  private static final long serialVersionUID = 1L;
 
   private List<SituationConfiguration> configurations;
 

@@ -1,8 +1,12 @@
 package org.onebusaway.service_alerts.model;
 
+import java.io.Serializable;
+
 import org.onebusaway.service_alerts.model.properties.AlertProperties;
 
-public class AlertDescription {
+public final class AlertDescription implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   private String id;
 

@@ -1,12 +1,15 @@
 package org.onebusaway.service_alerts.model;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.onebusaway.service_alerts.model.properties.AlertProperties;
 import org.onebusaway.transit_data.model.service_alerts.SituationBean;
 
-public class SituationConfiguration {
+public class SituationConfiguration implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   private String id;
 

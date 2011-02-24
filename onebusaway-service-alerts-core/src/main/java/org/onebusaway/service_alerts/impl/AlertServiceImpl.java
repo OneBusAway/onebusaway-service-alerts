@@ -3,6 +3,7 @@ package org.onebusaway.service_alerts.impl;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -168,6 +169,8 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
             unresolvedAlert.getKey());
       }
     }
+    
+    activateAlert(resolvedAlert);
   }
 
   @Override
@@ -185,6 +188,7 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
     resolvedAlert.setTimeOfLastUpdate(unresolvedAlert.getTimeOfLastUpdate());
     resolvedAlert.setGroup(unresolvedAlert.getGroup());
     resolvedAlert.setKey(unresolvedAlert.getKey());
+    resolvedAlert.setDataSourceId(unresolvedAlert.getDataSourceId());
 
     List<SituationConfiguration> configurations = new ArrayList<SituationConfiguration>();
 
@@ -206,6 +210,7 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
 
     resolvedAlert.setConfigurations(configurations);
     _resolvedAlerts.addAlert(resolvedAlert);
+    activateAlert(resolvedAlert);
   }
 
   public synchronized void setActiveAlerts(List<AlertDescription> activeAlerts) {
@@ -262,11 +267,13 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
       resolvedAlert.setGroup(configuration.getGroup());
       resolvedAlert.setKey(key);
       resolvedAlert.setDataSourceId(dataSourceId);
-
+      resolvedAlert.setConfigurations(Arrays.asList(configuration));
+      
       _log.debug("adding new resolved alert: {}", resolvedAlert);
 
       _resolvedAlerts.addAlert(resolvedAlert);
-
+      activateAlert(resolvedAlert);
+      
       return;
     }
 
@@ -281,6 +288,7 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
     unresolvedAlert.setGroup(desc.getGroup());
     unresolvedAlert.setKey(desc.getKey());
     unresolvedAlert.setFullDescription(desc);
+    unresolvedAlert.setDataSourceId(dataSourceId);
 
     _log.debug("adding new unresolved alert: {}", unresolvedAlert);
 
@@ -306,10 +314,29 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
       }
     }
 
-    for (T alert : toRemove)
+    for (T alert : toRemove) {
       alertIndex.removeAlert(alert);
+      deacivatelAlert(alert);      
+    }
 
     return newUnresolvedGroups;
   }
 
+  private void activateAlert(AbstractAlert alert) {
+    if (alert instanceof ResolvedAlert) {
+      ResolvedAlert resolvedAlert = (ResolvedAlert) alert;
+      for (SituationConfiguration config : resolvedAlert.getConfigurations()) {
+        _situationService.updateVisibility(config.getId(), true);
+      }
+    }
+  }
+
+  private void deacivatelAlert(AbstractAlert alert) {
+    if (alert instanceof ResolvedAlert) {
+      ResolvedAlert resolvedAlert = (ResolvedAlert) alert;
+      for (SituationConfiguration config : resolvedAlert.getConfigurations()) {
+        _situationService.updateVisibility(config.getId(), false);
+      }
+    }
+  }
 }

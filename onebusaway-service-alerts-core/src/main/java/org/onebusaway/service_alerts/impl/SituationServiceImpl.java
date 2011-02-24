@@ -1,15 +1,21 @@
 package org.onebusaway.service_alerts.impl;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.apache.commons.lang.ObjectUtils;
 import org.onebusaway.collections.CollectionsLibrary;
 import org.onebusaway.collections.FunctionalLibrary;
 import org.onebusaway.geospatial.model.EncodedPolylineBean;
+import org.onebusaway.service_alerts.model.ServiceAlertsBundle;
 import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.properties.AlertProperties;
 import org.onebusaway.service_alerts.services.SiriService;
@@ -25,6 +31,7 @@ import org.onebusaway.transit_data.model.service_alerts.SituationAffectsBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationConditionDetailsBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationConsequenceBean;
+import org.onebusaway.utility.ObjectSerializationLibrary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -65,10 +72,48 @@ class SituationServiceImpl implements SituationService {
 
   private SituationConfigurationIndex _configurations = new SituationConfigurationIndex();
 
+  private ServiceAlertsBundle _bundle;
+
   @Autowired
   public void setSiriService(SiriService siriService) {
     _sirivService = siriService;
   }
+
+  @Autowired
+  public void setServiceAlertsBundle(ServiceAlertsBundle bundle) {
+    _bundle = bundle;
+  }
+
+  /****
+   * 
+   ****/
+
+  @PostConstruct
+  public void start() throws IOException, ClassNotFoundException {
+
+    File path = _bundle.getSituationConfigurationsPath();
+
+    if (path.exists()) {
+      Collection<SituationConfiguration> configs = ObjectSerializationLibrary.readObject(path);
+      for (SituationConfiguration config : configs) {
+        // Default to not visible
+        config.setVisible(false);
+        _configurations.addConfiguration(config);
+      }
+    }
+  }
+
+  @PreDestroy
+  public void stop() throws IOException {
+    File path = _bundle.getSituationConfigurationsPath();
+    Collection<SituationConfiguration> configs = _configurations.getConfigurations();
+    configs = new ArrayList<SituationConfiguration>(configs);
+    ObjectSerializationLibrary.writeObject(path, configs);
+  }
+
+  /****
+   * 
+   ****/
 
   @Override
   public SituationConfiguration createSituation(AlertProperties group) {

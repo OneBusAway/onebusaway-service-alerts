@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.onebusaway.collections.CollectionsLibrary;
 import org.onebusaway.service_alerts.model.AbstractAlert;
 import org.onebusaway.service_alerts.model.ResolvedAlert;
 import org.onebusaway.service_alerts.model.SituationConfiguration;
@@ -125,8 +126,11 @@ class AlertBeanServiceImpl implements AlertBeanService {
     populateAlertBean(alert, bean);
 
     List<SituationConfiguration> beans = new ArrayList<SituationConfiguration>();
-    for (SituationConfiguration config : alert.getConfigurations()) {
-      beans.add(config);
+    List<SituationConfiguration> configs = alert.getConfigurations();
+    if (!CollectionsLibrary.isEmpty(configs)) {
+      for (SituationConfiguration config : configs) {
+        beans.add(config);
+      }
     }
     bean.setConfigurations(beans);
 

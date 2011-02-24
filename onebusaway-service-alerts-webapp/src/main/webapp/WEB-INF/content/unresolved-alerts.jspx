@@ -43,9 +43,7 @@
     <table class="alertsTable">
         <thead>
             <tr>
-                <td>Route</td>
-                <td>Region</td>
-                <td>Description</td>
+                <td>Key</td>
                 <td>Created</td>
                 <td>Action</td>
             </tr>
@@ -53,9 +51,7 @@
         <tbody>
             <s:iterator value="resolvedAlerts">
                 <tr>
-                    <td><oba:routeName value="route"/></td>
-                    <td><s:property value="region"/></td>
-                    <td><s:property value="description"/></td>
+                    <td><s:property value="key"/></td>
                     <td><oba:date timeStyle="short" value="timeOfCreation"/></td>
                     <td><s:a action="resolved-alert"><s:param name="id" value="id"/>View</s:a></td>
                 </tr>

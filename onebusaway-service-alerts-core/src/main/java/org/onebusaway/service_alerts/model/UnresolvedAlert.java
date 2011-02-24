@@ -1,7 +1,9 @@
 package org.onebusaway.service_alerts.model;
 
-public class UnresolvedAlert extends AbstractAlert {
+public final class UnresolvedAlert extends AbstractAlert {
 
+  private static final long serialVersionUID = 1L;
+  
   private AlertDescription fullDescription;
 
   public AlertDescription getFullDescription() {

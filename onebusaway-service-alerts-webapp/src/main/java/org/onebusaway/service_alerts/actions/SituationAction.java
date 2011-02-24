@@ -1,6 +1,7 @@
 package org.onebusaway.service_alerts.actions;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +20,8 @@ import org.onebusaway.presentation.bundles.service_alerts.MiscellaneousReasons;
 import org.onebusaway.presentation.bundles.service_alerts.PersonnelReasons;
 import org.onebusaway.presentation.bundles.service_alerts.ServiceConditions;
 import org.onebusaway.presentation.impl.StackInterceptor.AddToStack;
+import org.onebusaway.service_alerts.impl.SituationConfigSummaryComparator;
+import org.onebusaway.service_alerts.impl.SituationConfigVisibilityComparator;
 import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.SituationConfigurationV2Bean;
 import org.onebusaway.service_alerts.model.beans.ResolvedAlertBean;
@@ -86,6 +89,8 @@ public class SituationAction extends ActionSupport implements
   private int _index;
 
   private List<ResolvedAlertBean> _resolvedAlerts;
+
+  private String _sort;
 
   @Autowired
   public void setTransitDataService(TransitDataService transitDataService) {
@@ -162,6 +167,14 @@ public class SituationAction extends ActionSupport implements
     _index = index;
   }
 
+  public void setSort(String sort) {
+    _sort = sort;
+  }
+
+  public String getSort() {
+    return _sort;
+  }
+
   @Override
   public SituationConfiguration getModel() {
     return _model;
@@ -185,6 +198,12 @@ public class SituationAction extends ActionSupport implements
 
   public String list() {
     _models = _situationService.getAllSituations();
+    if (_sort != null) {
+      if ("visible".equals(_sort))
+        Collections.sort(_models, SituationConfigVisibilityComparator.INSTANCE);
+      else if ("summary".equals(_sort))
+        Collections.sort(_models, SituationConfigSummaryComparator.INSTANCE);
+    }
     return "list";
   }
 
@@ -376,7 +395,7 @@ public class SituationAction extends ActionSupport implements
 
     if (_model == null)
       return;
-    
+
     _resolvedAlerts = _alertBeanService.getResolvedAlertsForSituationConfigurationId(_model.getId());
 
     BeanFactoryV2 factory = new BeanFactoryV2(true);
