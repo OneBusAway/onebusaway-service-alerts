@@ -9,8 +9,9 @@ import java.util.Set;
 
 import org.onebusaway.service_alerts.model.AbstractAlert;
 import org.onebusaway.service_alerts.model.properties.AlertProperties;
+import org.onebusaway.service_alerts.services.AlertRemover;
 
-public class AlertIndex<T extends AbstractAlert> {
+public class AlertIndex<T extends AbstractAlert> implements AlertRemover<T> {
 
   private Map<AlertProperties, T> _alerts = new HashMap<AlertProperties, T>();
 

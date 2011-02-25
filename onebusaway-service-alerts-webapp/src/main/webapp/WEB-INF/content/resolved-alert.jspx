@@ -17,5 +17,12 @@
     <s:param name="alert" value="top" />
 </s:component>
 
+<h3>Attached Situation Configurations</h3>
+<s:iterator value="#alert.configurations">
+    <s:component template="situation-configuration.jspx">
+        <s:param name="situationConfiguration" value="top" />
+    </s:component>
+</s:iterator>
+
 </body>
 </html>

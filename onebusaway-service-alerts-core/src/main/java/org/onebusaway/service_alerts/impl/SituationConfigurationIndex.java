@@ -16,7 +16,7 @@ public class SituationConfigurationIndex {
 
   private Map<AlertProperties, Set<SituationConfiguration>> _configurationsByGroup = new HashMap<AlertProperties, Set<SituationConfiguration>>();
 
-  private Map<AlertProperties, SituationConfiguration> _configurationsByKey = new HashMap<AlertProperties, SituationConfiguration>();
+  private Map<AlertProperties, Set<SituationConfiguration>> _configurationsByKey = new HashMap<AlertProperties, Set<SituationConfiguration>>();
 
   public void addConfiguration(SituationConfiguration configuration) {
 
@@ -38,7 +38,12 @@ public class SituationConfigurationIndex {
     set.add(configuration);
 
     for (AlertProperties key : configuration.getKeys()) {
-      _configurationsByKey.put(key, configuration);
+      Set<SituationConfiguration> configurations = _configurationsByKey.get(key);
+      if( configurations == null) {
+        configurations = new HashSet<SituationConfiguration>();
+        _configurationsByKey.put(key, configurations);
+      }
+      configurations.add(configuration);
     }
   }
 
@@ -51,6 +56,20 @@ public class SituationConfigurationIndex {
       return;
 
     keys.add(key);
+
+    removeConfiguration(config);
+    addConfiguration(config);
+  }
+
+  public void removeKeyFromConfiguration(SituationConfiguration config,
+      AlertProperties key) {
+
+    Set<AlertProperties> keys = config.getKeys();
+
+    if (!keys.contains(key))
+      return;
+
+    keys.remove(key);
 
     removeConfiguration(config);
     addConfiguration(config);
@@ -82,8 +101,11 @@ public class SituationConfigurationIndex {
     return set;
   }
 
-  public SituationConfiguration getConfigurationForKey(AlertProperties key) {
-    return _configurationsByKey.get(key);
+  public Collection<SituationConfiguration> getConfigurationsForKey(AlertProperties key) {
+    Set<SituationConfiguration> configurations = _configurationsByKey.get(key);
+    if( configurations == null)
+      return Collections.emptyList();
+    return configurations;
   }
 
   /****

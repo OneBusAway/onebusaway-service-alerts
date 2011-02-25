@@ -18,6 +18,7 @@
 	xmlns:jsp="http://java.sun.com/JSP/Page"
 	xmlns:c="http://java.sun.com/jsp/jstl/core"
 	xmlns:oba="/oba-tags"
+    xmlns:s="/struts-tags"
 	xmlns:decorator="http://www.opensymphony.com/sitemesh/decorator">
 <jsp:directive.page contentType="text/html" />
 
@@ -35,12 +36,8 @@
 <div id="header">
 
 <ul id="mainNav" class="tabs">
-
-<jsp:element name="li">
-  <a href="${pageContext.request.contextPath}/">Home</a>
-</jsp:element>
-
-
+  <li><s:a namespace="/" action="unresolved-alerts">Unresolved Alerts</s:a></li>
+  <li><s:a namespace="/" action="situation!list">Situations</s:a></li>
 </ul>
 
 <a id="headerTitle" href="${pageContext.request.contextPath}/">Service Alerts</a>

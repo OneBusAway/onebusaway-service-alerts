@@ -34,26 +34,42 @@
 
     <div class="situationConfigurationContent">
     
-    <h4>Manage:</h4>
+    <h4><s:property value="#config.situation.summary.value"/></h4>
     <ul>
+    	<li><s:property value="#config.situation.description.value"/></li>
+        <s:iterator value="#config.situation.affects.vehicleJourneys">
+            <li>routeId=<s:property value="lineId"/><s:if test="! direction.empty">, directionId=<s:property value="direction"/></s:if></li>
+        </s:iterator>
         <s:url var="url" action="situation">
             <s:param name="id" value="#config.id"/>
         </s:url>
         <li><s:a href="%{url}">Edit Situation Configuration</s:a></li>
     </ul>
-    
+
     <h4>Group:</h4>
-    <s:component template="alert-properties.jspx">
+    <ul>
+    <li>
+    <s:component template="alert-properties-span.jspx">
         <s:param name="properties" value="#config.group"/>
     </s:component>
+    </li>
+    </ul>
     
     <h4>Keys:</h4>
+    <s:if test="#config.keys.empty">
+        <p>No keys.</p>
+    </s:if>
+    <s:else>
+    <ul>
     <s:iterator value="#config.keys">
-        <p>Key:</p>
-        <s:component template="alert-properties.jspx">
+        <li>       
+        <s:component template="alert-properties-span.jspx">
             <s:param name="properties" value="top"/>
         </s:component>
+        </li>
     </s:iterator>
+    </ul>
+    </s:else>
     </div>
 </div>
     

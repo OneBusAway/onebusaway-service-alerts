@@ -105,6 +105,12 @@ public class UnresolvedAlertAction extends ActionSupport implements
     return "redirect";
   }
 
+  @Validations(requiredStrings = {@RequiredStringValidator(fieldName = "id")})
+  public String resolveToEmptyAlert() {
+    _alertService.resolveAlertToNothing(_id);
+    return "redirect";
+  }
+
   @Validations(requiredFields = {@RequiredFieldValidator(fieldName = "configurationIds")}, requiredStrings = {@RequiredStringValidator(fieldName = "id")})
   public String resolveToConfigurations() {
     _alertService.resolveAlertToExistingConfiguration(_id, _configurationIds);

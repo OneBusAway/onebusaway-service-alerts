@@ -26,12 +26,12 @@ public interface AlertBeanService {
   public List<SituationConfiguration> getPotentialConfigurationsWithGroup(
       AlertProperties group);
 
-  public SituationConfiguration getSituationConfigurationForId(String id);
+  public void resolveAlertToNothing(String unresolvedAlertId);
 
   public void resolveAlertToExistingAlert(String unresolvedAlertId,
       String existingResolvedAlertId);
 
   public void resolveAlertToExistingConfiguration(String unresolvedAlertId,
-      List<String> alertConfigurationIds);
+      List<String> situationConfigurationIds);
 
 }

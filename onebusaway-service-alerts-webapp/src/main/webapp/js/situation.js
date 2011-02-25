@@ -13,9 +13,9 @@ var oba_service_alerts_situation = function(data) {
 	 * 
 	 **************************************************************************/
 
-	var stopClickHandler = function(stop, map, initiallyEnabled, handler) {
+	var stopClickHandler = function(stop, map, initiallyEnabled, params, handler) {
 
-		var content = OBA.Presentation.createStopInfoWindow(stop);
+		var content = OBA.Presentation.createStopInfoWindow(stop, params);
 
 		var addContent = content.find('.stopContent .addStop');
 		var removeContent = content.find('.stopContent .removeStop');
@@ -290,7 +290,7 @@ var oba_service_alerts_situation = function(data) {
 
 	var affectedStopClickHandler = function(stop, map) {
 		var initiallyEnabled = (stop.id in affectedStopsById);
-		stopClickHandler(stop, map, initiallyEnabled, function(enabled) {
+		stopClickHandler(stop, map, initiallyEnabled, {}, function(enabled) {
 			if (enabled)
 				affectedStopsById[stop.id] = true;
 			else
@@ -558,8 +558,8 @@ var oba_service_alerts_situation = function(data) {
 
 		var key = keyForVehicleJourneyCall(entry, stop.id);
 		var initiallyEnabled = (key in affectedVehicleJourneyStopCallsById);
-
-		stopClickHandler(stop, map, initiallyEnabled, function(enabled) {
+		var params = {hideRoutes: true};
+		stopClickHandler(stop, map, initiallyEnabled, params, function(enabled) {
 			if (enabled)
 				affectedVehicleJourneyStopCallsById[key] = true;
 			else

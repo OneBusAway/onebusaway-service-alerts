@@ -18,6 +18,9 @@ import org.onebusaway.geospatial.model.EncodedPolylineBean;
 import org.onebusaway.service_alerts.model.ServiceAlertsBundle;
 import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.properties.AlertProperties;
+import org.onebusaway.service_alerts.model.properties.AlertProperty;
+import org.onebusaway.service_alerts.model.properties.EAlertPropertyType;
+import org.onebusaway.service_alerts.services.AlertDao;
 import org.onebusaway.service_alerts.services.SiriService;
 import org.onebusaway.service_alerts.services.SituationService;
 import org.onebusaway.siri.ConditionDetails;
@@ -70,13 +73,20 @@ import uk.org.siri.siri.WorkflowStatusEnumeration;
 @Component
 class SituationServiceImpl implements SituationService {
 
+  private static final String DEFAULT_SITUATION_ID = "default-situation";
+
   private static Logger _log = LoggerFactory.getLogger(SituationServiceImpl.class);
+
+  private AlertDao _dao;
 
   private SiriService _sirivService;
 
-  private SituationConfigurationIndex _configurations = new SituationConfigurationIndex();
-
   private ServiceAlertsBundle _bundle;
+
+  @Autowired
+  public void setDao(AlertDao dao) {
+    _dao = dao;
+  }
 
   @Autowired
   public void setSiriService(SiriService siriService) {
@@ -102,9 +112,14 @@ class SituationServiceImpl implements SituationService {
       for (SituationConfiguration config : configs) {
         // Default to not visible
         config.setVisible(false);
-        _configurations.addConfiguration(config);
+        _dao.addConfiguration(config);
       }
     }
+
+    /**
+     * Make sure we have a default configuration
+     */
+    getDefaultSituation();
   }
 
   @PreDestroy
@@ -122,12 +137,35 @@ class SituationServiceImpl implements SituationService {
     File path = _bundle.getSituationConfigurationsPath();
 
     try {
-      Collection<SituationConfiguration> configs = _configurations.getConfigurations();
+      Collection<SituationConfiguration> configs = _dao.getConfigurations();
       configs = new ArrayList<SituationConfiguration>(configs);
       ObjectSerializationLibrary.writeObject(path, configs);
     } catch (Exception ex) {
       _log.warn("error saving alerts to file " + path, ex);
     }
+  }
+
+  @Override
+  public SituationConfiguration getDefaultSituation() {
+
+    SituationConfiguration configuration = _dao.getConfigurationForId(DEFAULT_SITUATION_ID);
+
+    if (configuration == null) {
+      configuration = new SituationConfiguration();
+
+      configuration.setId(DEFAULT_SITUATION_ID);
+      configuration.setLastUpdate(System.currentTimeMillis());
+      configuration.setVisible(false);
+      configuration.setGroup(new AlertProperties());
+
+      SituationBean situation = new SituationBean();
+      situation.setId(DEFAULT_SITUATION_ID);
+      situation.setCreationTime(System.currentTimeMillis());
+      configuration.setSituation(situation);
+
+      _dao.addConfiguration(configuration);
+    }
+    return configuration;
   }
 
   @Override
@@ -147,7 +185,20 @@ class SituationServiceImpl implements SituationService {
     situation.setCreationTime(t);
     configuration.setSituation(situation);
 
-    _configurations.addConfiguration(configuration);
+    _dao.addConfiguration(configuration);
+
+    /**
+     * If the group specifies a ROUTE_ID key, we automatically add the route to
+     * the set of affected routes.
+     */
+    for (String key : group.getKeys()) {
+      AlertProperty property = group.getProperty(key);
+      if (property.getType() == EAlertPropertyType.ROUTE_ID) {
+        String routeId = property.getValue();
+        setAffectedVehicleJourneyForSituation(configuration.getId(), routeId,
+            null, true);
+      }
+    }
 
     return configuration;
   }
@@ -156,38 +207,17 @@ class SituationServiceImpl implements SituationService {
   public SituationConfiguration createSituation(
       SituationConfiguration configuration) {
 
-    _configurations.addConfiguration(configuration);
+    _dao.addConfiguration(configuration);
 
     return configuration;
   }
 
   @Override
-  public SituationConfiguration getSituationForId(String id) {
-    return _configurations.getConfigurationForId(id);
-  }
-
-  @Override
   public void deleteSituationForId(String id) {
-    SituationConfiguration config = _configurations.getConfigurationForId(id);
-    if (config != null)
-      _configurations.removeConfiguration(config);
-  }
-
-  @Override
-  public List<SituationConfiguration> getAllSituations() {
-    return new ArrayList<SituationConfiguration>(
-        _configurations.getConfigurations());
-  }
-
-  @Override
-  public Collection<SituationConfiguration> getSituationsForGroup(
-      AlertProperties group) {
-    return _configurations.getConfigurationsForGroup(group);
-  }
-
-  @Override
-  public SituationConfiguration getSituationForKey(AlertProperties key) {
-    return _configurations.getConfigurationForKey(key);
+    SituationConfiguration config = _dao.getConfigurationForId(id);
+    if (config != null) {
+      _dao.removeConfiguration(config);
+    }
   }
 
   /****
@@ -195,16 +225,10 @@ class SituationServiceImpl implements SituationService {
    ****/
 
   @Override
-  public void addKeyToSituationConfiguration(SituationConfiguration config,
-      AlertProperties key) {
-    _configurations.addKeyToConfiguration(config, key);
-  }
-
-  @Override
   public SituationConfiguration updateConfigurationDetails(String id,
       SituationBean situation) {
 
-    SituationConfiguration config = _configurations.getConfigurationForId(id);
+    SituationConfiguration config = _dao.getConfigurationForId(id);
     if (config == null)
       return null;
 
@@ -229,7 +253,7 @@ class SituationServiceImpl implements SituationService {
   @Override
   public SituationConfiguration updateVisibility(String id, boolean visible) {
 
-    SituationConfiguration config = _configurations.getConfigurationForId(id);
+    SituationConfiguration config = _dao.getConfigurationForId(id);
     if (config == null)
       return null;
 
@@ -245,7 +269,7 @@ class SituationServiceImpl implements SituationService {
   public SituationConfiguration setAffectedAgencyForSituation(String id,
       String agencyId, boolean active) {
 
-    SituationConfiguration config = _configurations.getConfigurationForId(id);
+    SituationConfiguration config = _dao.getConfigurationForId(id);
     if (config == null)
       return null;
 
@@ -288,7 +312,7 @@ class SituationServiceImpl implements SituationService {
   public SituationConfiguration setAffectedStopForSituation(String id,
       String stopId, boolean active) {
 
-    SituationConfiguration config = _configurations.getConfigurationForId(id);
+    SituationConfiguration config = _dao.getConfigurationForId(id);
     if (config == null)
       return null;
 
@@ -331,7 +355,7 @@ class SituationServiceImpl implements SituationService {
   public SituationConfiguration setAffectedVehicleJourneyForSituation(
       String id, String routeId, String directionId, boolean active) {
 
-    SituationConfiguration config = _configurations.getConfigurationForId(id);
+    SituationConfiguration config = _dao.getConfigurationForId(id);
     if (config == null)
       return null;
 
@@ -376,7 +400,7 @@ class SituationServiceImpl implements SituationService {
       String id, String routeId, String directionId, String stopId,
       boolean active) {
 
-    SituationConfiguration config = _configurations.getConfigurationForId(id);
+    SituationConfiguration config = _dao.getConfigurationForId(id);
     if (config == null)
       return null;
 
@@ -428,7 +452,7 @@ class SituationServiceImpl implements SituationService {
   public SituationConfiguration addConsequenceForSituation(String id,
       SituationConsequenceBean consequence) {
 
-    SituationConfiguration config = _configurations.getConfigurationForId(id);
+    SituationConfiguration config = _dao.getConfigurationForId(id);
     if (config == null)
       return null;
 
@@ -451,7 +475,7 @@ class SituationServiceImpl implements SituationService {
   public SituationConfiguration updateConsequenceForSituation(String id,
       int index, SituationConsequenceBean consequence) {
 
-    SituationConfiguration config = _configurations.getConfigurationForId(id);
+    SituationConfiguration config = _dao.getConfigurationForId(id);
     if (config == null)
       return null;
 
@@ -471,7 +495,7 @@ class SituationServiceImpl implements SituationService {
   public SituationConfiguration removeConsequenceForSituation(String id,
       int index) {
 
-    SituationConfiguration config = _configurations.getConfigurationForId(id);
+    SituationConfiguration config = _dao.getConfigurationForId(id);
     if (config == null)
       return null;
 

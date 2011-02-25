@@ -12,6 +12,7 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
+import org.onebusaway.collections.MappingLibrary;
 import org.onebusaway.service_alerts.model.AbstractAlert;
 import org.onebusaway.service_alerts.model.AlertDescription;
 import org.onebusaway.service_alerts.model.NotFoundException;
@@ -19,8 +20,10 @@ import org.onebusaway.service_alerts.model.ResolvedAlert;
 import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.UnresolvedAlert;
 import org.onebusaway.service_alerts.model.properties.AlertProperties;
+import org.onebusaway.service_alerts.services.AlertDao;
 import org.onebusaway.service_alerts.services.AlertDescriptionService;
-import org.onebusaway.service_alerts.services.AlertService;
+import org.onebusaway.service_alerts.services.AlertResolutionService;
+import org.onebusaway.service_alerts.services.AlertRemover;
 import org.onebusaway.service_alerts.services.SituationService;
 import org.onebusaway.utility.ObjectSerializationLibrary;
 import org.slf4j.Logger;
@@ -29,17 +32,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-class AlertServiceImpl implements AlertDescriptionService, AlertService {
+class AlertResolutionServiceImpl implements AlertDescriptionService,
+    AlertResolutionService {
 
-  private static Logger _log = LoggerFactory.getLogger(AlertServiceImpl.class);
+  private static Logger _log = LoggerFactory.getLogger(AlertResolutionServiceImpl.class);
 
-  private AlertIndex<UnresolvedAlert> _unresolvedAlerts = new AlertIndex<UnresolvedAlert>();
-
-  private ResolvedAlertIndex _resolvedAlerts = new ResolvedAlertIndex();
+  private AlertDao _dao;
 
   private SituationService _situationService;
 
   private File _path;
+
+  @Autowired
+  public void setDao(AlertDao dao) {
+    _dao = dao;
+  }
 
   @Autowired
   public void setSituationService(SituationService situationService) {
@@ -80,96 +87,76 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
      * We can clear out any unresolved alerts that haven't been updated in this
      * round
      */
-    Set<AlertProperties> unresolvedGroups = clearStaleAlerts(_unresolvedAlerts,
-        _unresolvedAlerts.getAlertsForDataSourceId(dataSourceId), time,
+    Set<AlertProperties> unresolvedGroups = clearStaleAlerts(
+        _dao.getUnresolvedAlertRemover(),
+        _dao.getUnresolvedAlertsForDataSourceId(dataSourceId), time,
         new HashSet<AlertProperties>());
 
     /**
      * We can clear out any alerts that haven't been updated since the last
      * route if there are not unresolved alerts with the same route+region
      */
-    clearStaleAlerts(_resolvedAlerts,
-        _resolvedAlerts.getAlertsForDataSourceId(dataSourceId), time,
+    clearStaleAlerts(_dao.getResolvedAlertRemover(),
+        _dao.getResolvedAlertsForDataSourceId(dataSourceId), time,
         unresolvedGroups);
   }
 
   /****
-   * {@link AlertService} Interface
+   * {@link AlertResolutionService} Interface
    ****/
 
-  public synchronized List<UnresolvedAlert> getUnresolvedAlerts() {
-    return new ArrayList<UnresolvedAlert>(_unresolvedAlerts.getAlerts());
-  }
-
   @Override
-  public UnresolvedAlert getUnresolvedAlertForId(String id) {
-    return _unresolvedAlerts.getAlertForId(id);
-  }
+  public void resolveAlertToNothing(String unresolvedAlertId) {
 
-  @Override
-  public Collection<ResolvedAlert> getResolvedAlerts() {
-    return _resolvedAlerts.getAlerts();
-  }
+    UnresolvedAlert unresolvedAlert = _dao.getUnresolvedAlertForId(unresolvedAlertId);
 
-  @Override
-  public Collection<ResolvedAlert> getResolvedAlertsWithGroup(
-      AlertProperties group) {
-    return _resolvedAlerts.getAlertsForGroup(group);
-  }
+    if (unresolvedAlert == null)
+      throw new NotFoundException(UnresolvedAlert.class, unresolvedAlertId);
 
-  @Override
-  public Collection<ResolvedAlert> getResolvedAlertsForSituationConfigurationId(
-      String id) {
-    return _resolvedAlerts.getAlertsForSituationConfigurationId(id);
-  }
+    SituationConfiguration situation = _situationService.getDefaultSituation();
 
-  @Override
-  public Collection<SituationConfiguration> getPotentialConfigurationsWithGroup(
-      AlertProperties group) {
-    return _situationService.getSituationsForGroup(group);
-  }
-
-  @Override
-  public SituationConfiguration getSituationConfigurationForId(String id) {
-    return _situationService.getSituationForId(id);
-  }
-
-  @Override
-  public ResolvedAlert getResolvedAlertForId(String id) {
-    return _resolvedAlerts.getAlertForId(id);
+    resolveAlertToExistingConfigurations(unresolvedAlertId,
+        Arrays.asList(situation.getId()));
   }
 
   @Override
   public void resolveAlertToExistingAlert(String unresolvedAlertId,
       String existingResolvedAlertId) {
 
-    UnresolvedAlert unresolvedAlert = _unresolvedAlerts.getAlertForId(unresolvedAlertId);
+    UnresolvedAlert unresolvedAlert = _dao.getUnresolvedAlertForId(unresolvedAlertId);
 
     if (unresolvedAlert == null)
       throw new NotFoundException(UnresolvedAlert.class, unresolvedAlertId);
 
-    ResolvedAlert resolvedAlert = _resolvedAlerts.getAlertForId(existingResolvedAlertId);
+    ResolvedAlert resolvedAlert = _dao.getResolvedAlertForId(existingResolvedAlertId);
 
     if (resolvedAlert == null)
       throw new NotFoundException(ResolvedAlert.class, existingResolvedAlertId);
 
-    _unresolvedAlerts.removeAlert(unresolvedAlert);
-    _resolvedAlerts.removeAlert(resolvedAlert);
+    _dao.removeUnresolvedAlert(unresolvedAlert);
+    _dao.removeResolvedAlert(resolvedAlert);
 
     resolvedAlert.setKey(unresolvedAlert.getKey());
 
-    _resolvedAlerts.addAlert(resolvedAlert);
+    _dao.addResolvedAlert(resolvedAlert);
 
-    for (SituationConfiguration config : resolvedAlert.getConfigurations()) {
+    for (String configId : resolvedAlert.getConfigurationIds()) {
+
+      SituationConfiguration config = _dao.getConfigurationForId(configId);
+
+      if (config == null) {
+        _log.warn("resolved alert " + resolvedAlert.getId()
+            + " references unknown situation config " + configId);
+        continue;
+      }
 
       Set<AlertProperties> keys = config.getKeys();
 
       if (!keys.contains(unresolvedAlert.getKey())) {
-        _situationService.addKeyToSituationConfiguration(config,
-            unresolvedAlert.getKey());
+        _dao.addKeyToConfiguration(config, unresolvedAlert.getKey());
       }
     }
-    
+
     activateAlert(resolvedAlert);
   }
 
@@ -177,7 +164,7 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
   public void resolveAlertToExistingConfigurations(String unresolvedAlertId,
       List<String> alertConfigurationIds) {
 
-    UnresolvedAlert unresolvedAlert = _unresolvedAlerts.getAlertForId(unresolvedAlertId);
+    UnresolvedAlert unresolvedAlert = _dao.getUnresolvedAlertForId(unresolvedAlertId);
 
     if (unresolvedAlert == null)
       throw new NotFoundException(UnresolvedAlert.class, unresolvedAlertId);
@@ -190,31 +177,30 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
     resolvedAlert.setKey(unresolvedAlert.getKey());
     resolvedAlert.setDataSourceId(unresolvedAlert.getDataSourceId());
 
-    List<SituationConfiguration> configurations = new ArrayList<SituationConfiguration>();
+    List<String> configIds = new ArrayList<String>();
 
     for (String alertConfigurationId : alertConfigurationIds) {
-      SituationConfiguration config = _situationService.getSituationForId(alertConfigurationId);
+      SituationConfiguration config = _dao.getConfigurationForId(alertConfigurationId);
 
       if (config == null)
         throw new NotFoundException(SituationConfiguration.class,
             alertConfigurationIds);
 
-      configurations.add(config);
+      configIds.add(alertConfigurationId);
 
       Set<AlertProperties> keys = config.getKeys();
 
       if (!keys.contains(unresolvedAlert.getKey()))
-        _situationService.addKeyToSituationConfiguration(config,
-            unresolvedAlert.getKey());
+        _dao.addKeyToConfiguration(config, unresolvedAlert.getKey());
     }
 
-    resolvedAlert.setConfigurations(configurations);
-    _resolvedAlerts.addAlert(resolvedAlert);
+    resolvedAlert.setConfigurationIds(configIds);
+
+    deactivatelAlert(unresolvedAlert);
+    _dao.removeUnresolvedAlert(unresolvedAlert);
+
+    _dao.addResolvedAlert(resolvedAlert);
     activateAlert(resolvedAlert);
-  }
-
-  public synchronized void setActiveAlerts(List<AlertDescription> activeAlerts) {
-
   }
 
   /****
@@ -226,7 +212,7 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
 
     AlertProperties key = desc.getKey();
 
-    ResolvedAlert resolvedAlert = _resolvedAlerts.getAlertForKey(key);
+    ResolvedAlert resolvedAlert = _dao.getResolvedAlertForKey(key);
 
     /**
      * If we've previously seen and resolved this alert, then we set the update
@@ -237,7 +223,7 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
       return;
     }
 
-    UnresolvedAlert unresolvedAlert = _unresolvedAlerts.getAlertForKey(key);
+    UnresolvedAlert unresolvedAlert = _dao.getUnresolvedAlertForKey(key);
 
     /**
      * If we've previously seen but have not yet resolved this alert, then we
@@ -257,23 +243,25 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
     /**
      * Can we map the alert to an existing configuration?
      */
-    SituationConfiguration configuration = _situationService.getSituationForKey(key);
+    Collection<SituationConfiguration> configurations = _dao.getConfigurationsForKey(key);
 
-    if (configuration != null) {
+    if (!configurations.isEmpty()) {
       resolvedAlert = new ResolvedAlert();
       resolvedAlert.setId(id);
       resolvedAlert.setTimeOfCreation(time);
       resolvedAlert.setTimeOfLastUpdate(time);
-      resolvedAlert.setGroup(configuration.getGroup());
+      resolvedAlert.setGroup(desc.getGroup());
       resolvedAlert.setKey(key);
       resolvedAlert.setDataSourceId(dataSourceId);
-      resolvedAlert.setConfigurations(Arrays.asList(configuration));
-      
+
+      List<String> configIds = MappingLibrary.map(configurations, "id");
+      resolvedAlert.setConfigurationIds(configIds);
+
       _log.debug("adding new resolved alert: {}", resolvedAlert);
 
-      _resolvedAlerts.addAlert(resolvedAlert);
+      _dao.addResolvedAlert(resolvedAlert);
       activateAlert(resolvedAlert);
-      
+
       return;
     }
 
@@ -286,17 +274,17 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
     unresolvedAlert.setTimeOfCreation(time);
     unresolvedAlert.setTimeOfLastUpdate(time);
     unresolvedAlert.setGroup(desc.getGroup());
-    unresolvedAlert.setKey(desc.getKey());
+    unresolvedAlert.setKey(key);
     unresolvedAlert.setFullDescription(desc);
     unresolvedAlert.setDataSourceId(dataSourceId);
 
     _log.debug("adding new unresolved alert: {}", unresolvedAlert);
 
-    _unresolvedAlerts.addAlert(unresolvedAlert);
+    _dao.addUnresolvedAlert(unresolvedAlert);
   }
 
   private <T extends AbstractAlert> Set<AlertProperties> clearStaleAlerts(
-      AlertIndex<T> alertIndex, Collection<T> alerts, long time,
+      AlertRemover<T> alertIndex, Collection<T> alerts, long time,
       Set<AlertProperties> unresolvedGroups) {
 
     Set<AlertProperties> newUnresolvedGroups = new HashSet<AlertProperties>();
@@ -316,7 +304,7 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
 
     for (T alert : toRemove) {
       alertIndex.removeAlert(alert);
-      deacivatelAlert(alert);      
+      deactivatelAlert(alert);
     }
 
     return newUnresolvedGroups;
@@ -325,17 +313,17 @@ class AlertServiceImpl implements AlertDescriptionService, AlertService {
   private void activateAlert(AbstractAlert alert) {
     if (alert instanceof ResolvedAlert) {
       ResolvedAlert resolvedAlert = (ResolvedAlert) alert;
-      for (SituationConfiguration config : resolvedAlert.getConfigurations()) {
-        _situationService.updateVisibility(config.getId(), true);
+      for (String configId : resolvedAlert.getConfigurationIds()) {
+        _situationService.updateVisibility(configId, true);
       }
     }
   }
 
-  private void deacivatelAlert(AbstractAlert alert) {
+  private void deactivatelAlert(AbstractAlert alert) {
     if (alert instanceof ResolvedAlert) {
       ResolvedAlert resolvedAlert = (ResolvedAlert) alert;
-      for (SituationConfiguration config : resolvedAlert.getConfigurations()) {
-        _situationService.updateVisibility(config.getId(), false);
+      for (String configId : resolvedAlert.getConfigurationIds()) {
+        _situationService.updateVisibility(configId, false);
       }
     }
   }

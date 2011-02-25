@@ -8,41 +8,21 @@
 
     <div class="resolvedAlert">
 
-    <table class="resolvedAlert">
-        <tr>
-            <td>Id:</td>
-            <td><s:property value="#alert.id" /></td>
-        </tr>
-        <tr>
-            <td>Created:</td>
-            <td><oba:date timeStyle="short"
-                value="#alert.timeOfCreation" /></td>
-        </tr>
-        <tr>
-            <td>Updated:</td>
-            <td><oba:date timeStyle="short"
-                value="#alert.timeOfLastUpdate" /></td>
-        </tr>
-    </table>
-    
-    <h3>Group</h3>
-    
-    <s:component template="alert-properties.jspx">
-        <s:param name="properties" value="#alert.group"/>
-    </s:component>
-    
-    <h3>Key</h3>
-    
-    <s:component template="alert-properties.jspx">
-        <s:param name="properties" value="#alert.key"/>
-    </s:component>
-
-    <h3>Attached Situation Configurations</h3>
-    <s:iterator value="#alert.configurations">
-        <s:component template="situation-configuration.jspx">
-            <s:param name="situationConfiguration" value="top" />
-        </s:component>
-    </s:iterator>
+    <ul>
+        <li><span class="label">Id:</span> <s:property value="#alert.id" /></li>
+        <li><span class="label">Created:</span> <oba:date timeStyle="short" value="#alert.timeOfCreation" /></li>
+        <li><span class="label">Updated:</span> <oba:date timeStyle="short" value="#alert.timeOfLastUpdate" /></li>
+        <li><span class="label">Group:</span>
+            <s:component template="alert-properties-span.jspx">
+                <s:param name="properties" value="#alert.group"/>
+            </s:component>
+        </li>
+        <li><span class="label">Key:</span>
+            <s:component template="alert-properties-span.jspx">
+                <s:param name="properties" value="#alert.key"/>
+            </s:component>
+        </li>
+    </ul>
     
     </div>
 

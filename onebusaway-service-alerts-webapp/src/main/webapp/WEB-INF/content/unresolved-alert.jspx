@@ -22,10 +22,11 @@
 
 <h3>Existing Alerts with same Group</h3>
 
-<p>Group:</p>
-<s:component template="alert-properties.jspx">
+<p>Group:
+<s:component template="alert-properties-span.jspx">
     <s:param name="properties" value="fullDescription.group"/>
 </s:component>
+</p>
 
 <s:if test="resolvedAlerts.empty">
 <p>No existing alerts match this group.</p>
@@ -38,6 +39,7 @@
     <h4>Existing Resolved Alert:</h4>
     <s:component template="resolved-alert.jspx">
         <s:param name="alert" value="top" />
+        <s:param name="concise" value="true"/>
     </s:component>
     <s:url var="url" action="unresolved-alert!resolveToExistingAlert">
         <s:param name="id" value="model.id"/>
@@ -49,12 +51,8 @@
 
 <h3>Potential Situation Configurations</h3>
 
-<s:url var="createSituationUrl" action="situation!create">
-    <s:param name="groupProperty" value="fullDescription.group.asList"/>
-</s:url>
-
 <s:if test="potentialConfigurations.empty">
-<p>No existing configurations match this group.  Perhaps you might <s:a href="%{createSituationUrl}">create one</s:a>?</p>
+<p>No existing configurations match this group.</p>
 </s:if>
 <s:else>
 
@@ -75,6 +73,24 @@
 <p>Or perhaps you might <s:a href="%{createSituationUrl}">create one</s:a>?</p>
 
 </s:else>
+
+<h3>New Situation Configurations</h3>
+
+<s:url var="createSituationUrl" action="situation!create">
+    <s:param name="groupProperty" value="fullDescription.group.asList"/>
+    <s:param name="unresolvedAlertId" value="id"/>
+</s:url>
+
+<s:url var="emptySituationUrl" action="unresolved-alert!resolveToEmptyAlert">
+    <s:param name="id" value="model.id"/>
+</s:url>
+
+<p>You can also:</p>
+
+<ul>
+  <li><s:a href="%{createSituationUrl}">Create a New Situation</s:a></li>
+  <li><s:a href="%{emptySituationUrl}">Create an Empty Situation</s:a></li>
+</ul>
 
 </body>
 </html>

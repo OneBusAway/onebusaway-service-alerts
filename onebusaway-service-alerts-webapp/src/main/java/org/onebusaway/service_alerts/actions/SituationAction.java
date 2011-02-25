@@ -1,6 +1,7 @@
 package org.onebusaway.service_alerts.actions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import org.onebusaway.service_alerts.model.SituationConfigurationV2Bean;
 import org.onebusaway.service_alerts.model.beans.ResolvedAlertBean;
 import org.onebusaway.service_alerts.model.properties.AlertProperties;
 import org.onebusaway.service_alerts.services.AlertBeanService;
+import org.onebusaway.service_alerts.services.AlertDao;
 import org.onebusaway.service_alerts.services.SituationService;
 import org.onebusaway.transit_data.model.AgencyBean;
 import org.onebusaway.transit_data.model.RouteBean;
@@ -60,6 +62,8 @@ public class SituationAction extends ActionSupport implements
 
   private TransitDataService _transitDataService;
 
+  private AlertDao _alertDao;
+
   private SituationService _situationService;
 
   private AlertBeanService _alertBeanService;
@@ -92,9 +96,16 @@ public class SituationAction extends ActionSupport implements
 
   private String _sort;
 
+  private String _unresolvedAlertId;
+
   @Autowired
   public void setTransitDataService(TransitDataService transitDataService) {
     _transitDataService = transitDataService;
+  }
+
+  @Autowired
+  public void setAlertDao(AlertDao alertDao) {
+    _alertDao = alertDao;
   }
 
   @Autowired
@@ -175,6 +186,10 @@ public class SituationAction extends ActionSupport implements
     return _sort;
   }
 
+  public void setUnresolvedAlertId(String unresolvedAlertId) {
+    _unresolvedAlertId = unresolvedAlertId;
+  }
+
   @Override
   public SituationConfiguration getModel() {
     return _model;
@@ -197,7 +212,10 @@ public class SituationAction extends ActionSupport implements
    ****/
 
   public String list() {
-    _models = _situationService.getAllSituations();
+
+    _models = new ArrayList<SituationConfiguration>(
+        _alertDao.getConfigurations());
+
     if (_sort != null) {
       if ("visible".equals(_sort))
         Collections.sort(_models, SituationConfigVisibilityComparator.INSTANCE);
@@ -218,19 +236,28 @@ public class SituationAction extends ActionSupport implements
 
     _model = _situationService.createSituation(group);
 
+    /**
+     * Automatically resolve an unresolved alert on creation?
+     */
+    if (_model != null && _unresolvedAlertId != null) {
+      List<String> ids = Arrays.asList(_model.getId());
+      _alertBeanService.resolveAlertToExistingConfiguration(_unresolvedAlertId,
+          ids);
+    }
+
     fillResponse();
     return "redirectToSituation";
   }
 
   @Override
   public String execute() {
-    _model = _situationService.getSituationForId(_model.getId());
+    _model = _alertDao.getConfigurationForId(_model.getId());
     fillResponse();
     return SUCCESS;
   }
 
   public String json() {
-    _model = _situationService.getSituationForId(_model.getId());
+    _model = _alertDao.getConfigurationForId(_model.getId());
     fillResponse();
     return "json";
   }
@@ -256,6 +283,29 @@ public class SituationAction extends ActionSupport implements
     return "redirectToSituation";
   }
 
+  public String removeKey() {
+
+    _model = _alertDao.getConfigurationForId(_model.getId());
+    if (_model == null)
+      return INPUT;
+    int index = 0;
+
+    AlertProperties matchedKey = null;
+
+    for (AlertProperties key : _model.getKeys()) {
+      if (index == _index) {
+        matchedKey = key;
+        break;
+      }
+      index++;
+    }
+
+    if (matchedKey != null)
+      _alertDao.removeKeyFromConfiguration(_model, matchedKey);
+
+    return "redirectToSituation";
+  }
+
   public String updateVisibility() {
     _model = _situationService.updateVisibility(_model.getId(),
         _model.isVisible());
@@ -267,7 +317,7 @@ public class SituationAction extends ActionSupport implements
     _situationService.deleteSituationForId(_model.getId());
     return "redirectToSituations";
   }
-  
+
   public String saveAll() {
     _situationService.saveAllAlerts();
     return "redirectToSituations";

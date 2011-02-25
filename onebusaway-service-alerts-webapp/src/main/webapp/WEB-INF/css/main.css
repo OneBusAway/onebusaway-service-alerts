@@ -48,7 +48,7 @@ ul.tabs li {
 ul.tabs li a {
 	display: block;
 	font-weight: bold;
-	width: 90px;
+	width: 150px;
 	text-align: center;
 	padding: 8px 0px 8px 0px;
 	border-left: 1px solid #eee;
@@ -213,6 +213,14 @@ table.alertsTable > tbody > tr > td {
 	padding: 5px 1em 0 1em;
 }
 
+/****
+ *
+ ****/
+ 
+ .alertProperties span.key {
+   font-weight: bold;
+ }
+ 
 /****
  *
  ****/

@@ -6,13 +6,13 @@ public final class ResolvedAlert extends AbstractAlert {
 
   private static final long serialVersionUID = 1L;
 
-  private List<SituationConfiguration> configurations;
+  private List<String> configurationIds;
 
-  public List<SituationConfiguration> getConfigurations() {
-    return configurations;
+  public List<String> getConfigurationIds() {
+    return configurationIds;
   }
 
-  public void setConfigurations(List<SituationConfiguration> configurations) {
-    this.configurations = configurations;
+  public void setConfigurationIds(List<String> configurationIds) {
+    this.configurationIds = configurationIds;
   }
 }

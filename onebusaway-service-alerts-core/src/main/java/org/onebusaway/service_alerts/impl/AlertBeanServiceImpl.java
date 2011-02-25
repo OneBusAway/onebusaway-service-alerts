@@ -14,23 +14,35 @@ import org.onebusaway.service_alerts.model.beans.ResolvedAlertBean;
 import org.onebusaway.service_alerts.model.beans.UnresolvedAlertBean;
 import org.onebusaway.service_alerts.model.properties.AlertProperties;
 import org.onebusaway.service_alerts.services.AlertBeanService;
-import org.onebusaway.service_alerts.services.AlertService;
+import org.onebusaway.service_alerts.services.AlertDao;
+import org.onebusaway.service_alerts.services.AlertResolutionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 class AlertBeanServiceImpl implements AlertBeanService {
 
-  private AlertService _alertService;
+  private static Logger _log = LoggerFactory.getLogger(AlertBeanServiceImpl.class);
+
+  private AlertResolutionService _alertService;
+
+  private AlertDao _dao;
 
   @Autowired
-  public void setAlertService(AlertService alertService) {
+  public void setDao(AlertDao dao) {
+    _dao = dao;
+  }
+
+  @Autowired
+  public void setAlertService(AlertResolutionService alertService) {
     _alertService = alertService;
   }
 
   @Override
   public List<UnresolvedAlertBean> getUnresolvedAlerts() {
-    List<UnresolvedAlert> alerts = _alertService.getUnresolvedAlerts();
+    List<UnresolvedAlert> alerts = _dao.getAllUnresolvedAlerts();
     List<UnresolvedAlertBean> beans = new ArrayList<UnresolvedAlertBean>();
     for (UnresolvedAlert alert : alerts)
       beans.add(getUnresolvedAlertAsBean(alert));
@@ -39,44 +51,44 @@ class AlertBeanServiceImpl implements AlertBeanService {
 
   @Override
   public UnresolvedAlertBean getUnresolvedAlertForId(String id) {
-    return getUnresolvedAlertAsBean(_alertService.getUnresolvedAlertForId(id));
+    return getUnresolvedAlertAsBean(_dao.getUnresolvedAlertForId(id));
   }
 
   @Override
   public List<ResolvedAlertBean> getResolvedAlerts() {
-    Collection<ResolvedAlert> alerts = _alertService.getResolvedAlerts();
+    Collection<ResolvedAlert> alerts = _dao.getAllResolvedAlerts();
     return resolvedAlertBeans(alerts);
   }
 
   @Override
   public List<ResolvedAlertBean> getResolvedAlertsWithGroup(
       AlertProperties group) {
-    Collection<ResolvedAlert> alerts = _alertService.getResolvedAlertsWithGroup(group);
+    Collection<ResolvedAlert> alerts = _dao.getResolvedAlertsWithGroup(group);
     return resolvedAlertBeans(alerts);
   }
 
   @Override
   public List<ResolvedAlertBean> getResolvedAlertsForSituationConfigurationId(
       String id) {
-    Collection<ResolvedAlert> alerts = _alertService.getResolvedAlertsForSituationConfigurationId(id);
+    Collection<ResolvedAlert> alerts = _dao.getResolvedAlertsForSituationConfigurationId(id);
     return resolvedAlertBeans(alerts);
   }
 
   @Override
   public ResolvedAlertBean getResolvedAlertForId(String id) {
-    return getResolvedAlertAsBean(_alertService.getResolvedAlertForId(id));
+    return getResolvedAlertAsBean(_dao.getResolvedAlertForId(id));
   }
 
   @Override
   public List<SituationConfiguration> getPotentialConfigurationsWithGroup(
       AlertProperties group) {
-    Collection<SituationConfiguration> configs = _alertService.getPotentialConfigurationsWithGroup(group);
+    Collection<SituationConfiguration> configs = _dao.getConfigurationsForGroup(group);
     return new ArrayList<SituationConfiguration>(configs);
   }
 
   @Override
-  public SituationConfiguration getSituationConfigurationForId(String id) {
-    return _alertService.getSituationConfigurationForId(id);
+  public void resolveAlertToNothing(String unresolvedAlertId) {
+    _alertService.resolveAlertToNothing(unresolvedAlertId);
   }
 
   @Override
@@ -126,9 +138,16 @@ class AlertBeanServiceImpl implements AlertBeanService {
     populateAlertBean(alert, bean);
 
     List<SituationConfiguration> beans = new ArrayList<SituationConfiguration>();
-    List<SituationConfiguration> configs = alert.getConfigurations();
-    if (!CollectionsLibrary.isEmpty(configs)) {
-      for (SituationConfiguration config : configs) {
+
+    List<String> configIds = alert.getConfigurationIds();
+    if (!CollectionsLibrary.isEmpty(configIds)) {
+      for (String configId : configIds) {
+        SituationConfiguration config = _dao.getConfigurationForId(configId);
+        if (config == null) {
+          _log.warn("resolved alert " + alert.getId()
+              + " references unknown situation config " + configId);
+          continue;
+        }
         beans.add(config);
       }
     }
