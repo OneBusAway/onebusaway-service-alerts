@@ -8,7 +8,6 @@
 <title>Service Alert</title>
 <link rel="stylesheet" type="text/css" media="all" href="${oba:resource('/WEB-INF/css/jquery-ui-1.8.9.custom.css')}"/>
 <link rel="stylesheet" type="text/css" media="all" href="${oba:resource('classpath:org/onebusaway/presentation/css/oba-presentation.css')}"/>
-<link rel="stylesheet" type="text/css" media="all" href="${oba:resource('file:/Users/bdferris/oba/onebusaway-application-modules/onebusaway-presentation/src/main/resources/org/onebusaway/presentation/css/oba-presentation.css')}"/>
 <link rel="stylesheet" type="text/css" media="all" href="${oba:resource('classpath:org/onebusaway/presentation/css/oba-stop-selection-widget.css')}"/>
 <link rel="stylesheet" type="text/css" media="all" href="${oba:resource('/WEB-INF/css/situation.css')}"/>
 <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"><jsp:text></jsp:text></script>
@@ -16,12 +15,6 @@
 <script type="text/javascript" src="${oba:resource('AlertResources')}"><jsp:text></jsp:text></script>
 <script type="text/javascript" src="${oba:resource('classpath:org/onebusaway/presentation/js/oba-transit-map.js')}"><jsp:text></jsp:text></script>
 <script type="text/javascript" src="${oba:resource('classpath:org/onebusaway/presentation/js/oba-stop-selection-widget.js')}"><jsp:text></jsp:text></script>
-
-<script type="text/javascript" src="${oba:resource('file:/Users/bdferris/oba/onebusaway-application-modules/onebusaway-presentation/src/main/resources/org/onebusaway/presentation/js/oba-maps.js')}"><jsp:text></jsp:text></script>
-<script type="text/javascript" src="${oba:resource('file:/Users/bdferris/oba/onebusaway-application-modules/onebusaway-presentation/src/main/resources/org/onebusaway/presentation/js/oba-presentation.js')}"><jsp:text></jsp:text></script>
-<script type="text/javascript" src="${oba:resource('file:/Users/bdferris/oba/onebusaway-application-modules/onebusaway-presentation/src/main/resources/org/onebusaway/presentation/js/oba-transit-map.js')}"><jsp:text></jsp:text></script>
-<script type="text/javascript" src="${oba:resource('file:/Users/bdferris/oba/onebusaway-application-modules/onebusaway-presentation/src/main/resources/org/onebusaway/presentation/js/oba-stop-selection-widget.js')}"><jsp:text></jsp:text></script>
-
 
 <script type="text/javascript" src="${oba:resource('/js/polyline/spherical_formulas.js')}"><jsp:text></jsp:text></script>
 <script type="text/javascript" src="${oba:resource('/js/polyline/utils.js')}"><jsp:text></jsp:text></script>
