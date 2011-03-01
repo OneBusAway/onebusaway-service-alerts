@@ -227,9 +227,8 @@ public class SituationAction extends ActionSupport implements
 
   public String create() {
 
-    AlertProperties group = null;
+    AlertProperties group = new AlertProperties();
     if (!CollectionsLibrary.isEmpty(_groupProperty)) {
-      group = new AlertProperties();
       for (String token : _groupProperty)
         group.putEncodedProperty(token);
     }

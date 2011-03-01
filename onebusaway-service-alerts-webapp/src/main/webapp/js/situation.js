@@ -341,8 +341,8 @@ var oba_service_alerts_situation = function(data) {
 			var call = this;
 
 			var element = callsElement.find('.callTemplate').clone();
-			element.removeClass('.callTemplate');
-			element.addClass('.call');
+			element.removeClass('callTemplate');
+			element.addClass('call');
 
 			OBA.Presentation.applyStopNameToElement(call.stop, element);
 

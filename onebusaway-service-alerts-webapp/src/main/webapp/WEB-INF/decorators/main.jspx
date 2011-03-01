@@ -36,11 +36,11 @@
 <div id="header">
 
 <ul id="mainNav" class="tabs">
-  <li><s:a namespace="/" action="unresolved-alerts">Unresolved Alerts</s:a></li>
-  <li><s:a namespace="/" action="situation!list">Situations</s:a></li>
+  <li><s:a namespace="/" action="situation!list">Service Alerts</s:a></li>
+  <li><s:a namespace="/" action="unresolved-alerts">Imported Alerts</s:a></li>  
 </ul>
 
-<a id="headerTitle" href="${pageContext.request.contextPath}/">Service Alerts</a>
+<a id="headerTitle" href="${pageContext.request.contextPath}/">Service Alerts Webapp</a>
 
 </div>
 

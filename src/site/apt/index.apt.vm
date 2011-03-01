@@ -1,0 +1,53 @@
+ ------
+About
+ ------
+Brian Ferris
+ ------
+2011-02-28
+ ------
+ 
+onebusaway-service-alerts
+
+  We provide a library and web application for producing real-time public transit service alert information
+as open, structured-data that might be consumed by other systems.  Specifically, we are initially targeting
+the {{{http://siri.org.uk/}SIRI Situation Exchange}} standard. 
+  
+  <<Latest Version:>> ${currentVersion}
+
+  Details on all releases can be found in the {{{./release-notes.html}Release Notes}}.
+  
+* Functionality  
+  
+  The application provides some of the following functionality:
+  
+  * A web application for creating and editing public transit service alerts
+  
+  * A back-end library for publishing those alerts in real-time as SIRI Situation Exchange messages
+  
+  * Tools to help semi-automatically produce structured alerts from existing unstructured agency alerts (emails, sms, webpage, etc)
+
+* Modules
+  
+  The application is broken up into a few key modules:
+  
+  * <<<onebusaway-service-alerts-core>>> - Core alert management library
+
+  * <<<onebusaway-service-alerts-webapp>>> - Webapp front-end 
+
+Documentation
+
+  You can access the {{{./apidocs/index.html}latest Javadoc for the library}}.  Also, see example source code below.
+
+Using in Maven
+
+  The library is available as a Maven module.  Simply add the following dependencies:
+
++---+
+<dependencies>
+    <dependency>
+        <groupId>org.onebusaway</groupId>
+        <artifactId>onebusaway-service-alerts-core</artifactId>
+        <version>${currentVersion}</version>
+    </dependency>
+</dependencies>
++---+

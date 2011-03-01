@@ -196,6 +196,7 @@ div#header {
 
 table.alertsTable {
 	width: 100%;
+	margin-bottom: 1em;
 }
 
 table.alertsTable > thead > tr {

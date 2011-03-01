@@ -5,7 +5,7 @@
   <parent>
     <artifactId>onebusaway</artifactId>
     <groupId>org.onebusaway</groupId>
-    <version>1.0.7</version>
+    <version>1.1.0</version>
   </parent>
   <groupId>org.onebusaway</groupId>
   <artifactId>onebusaway-service-alerts</artifactId>
@@ -16,11 +16,25 @@
 
   <properties>
     <onebusaway-version>0.2.0-SNAPSHOT</onebusaway-version>
-    <onebusaway-collections-version>1.0.5-SNAPSHOT</onebusaway-collections-version>
+    <onebusaway-collections-version>1.1.1-SNAPSHOT</onebusaway-collections-version>
     <onebusaway-siri-version>0.0.3-SNAPSHOT</onebusaway-siri-version>
     <spring-version>3.0.3.RELEASE</spring-version>
     <struts-version>2.1.8.1</struts-version>
   </properties>
+
+  <scm>
+    <connection>scm:svn:http://onebusaway.googlecode.com/svn/onebusaway-service-alerts/trunk</connection>
+    <developerConnection>scm:svn:https://onebusaway.googlecode.com/svn/onebusaway-service-alerts/trunk</developerConnection>
+    <url>http://code.google.com/p/onebusaway/source/browse/#svn/onebusaway-service-alerts/trunk</url>
+  </scm>
+
+  <distributionManagement>
+    <!-- Even though we specify this in the parent pom, we need to specify it here to have full control over the url -->
+    <site>
+      <id>${site_id}</id>
+      <url>${site_url}</url>
+    </site>
+  </distributionManagement>
 
   <repositories>
     <repository>

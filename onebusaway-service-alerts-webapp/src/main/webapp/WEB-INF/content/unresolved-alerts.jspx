@@ -25,7 +25,11 @@
         <tbody>
             <s:iterator value="unresolvedAlerts">
                 <tr>
-                    <td><s:property value="key"/></td>
+                    <td>
+                      <s:component template="alert-properties-span.jspx">
+                        <s:param name="properties" value="key"/>
+                      </s:component>
+                    </td>
                     <td><oba:date timeStyle="short" value="timeOfCreation"/></td>
                     <td><s:a action="unresolved-alert"><s:param name="id" value="id"/>View</s:a></td>
                 </tr>

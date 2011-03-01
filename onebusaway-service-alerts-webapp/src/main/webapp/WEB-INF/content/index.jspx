@@ -9,8 +9,8 @@
 <body>
 
 <ul>
-    <li><s:a action="unresolved-alerts">Unresolved Alerts</s:a></li>
-    <li><s:a action="situation!list">Situations</s:a></li>
+    <li><s:a action="situation!list">Service Alerts</s:a></li>
+    <li><s:a action="unresolved-alerts">Imported Alerts</s:a></li>
 </ul>
 
 </body>

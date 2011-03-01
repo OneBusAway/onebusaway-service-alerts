@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<h2>Service Alert Configurations</h2>
+<h2>Service Alerts</h2>
 
 <s:if test="models.empty">
     <p>No active service alert configurations: <s:a action="situation!create">Create a New Service Alert</s:a></p>
