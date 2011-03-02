@@ -232,9 +232,12 @@ public class SituationAction extends ActionSupport implements
       for (String token : _groupProperty)
         group.putEncodedProperty(token);
     }
-
+    
+    /**
+     * Create the situation
+     */
     _model = _situationService.createSituation(group);
-
+    
     /**
      * Automatically resolve an unresolved alert on creation?
      */
