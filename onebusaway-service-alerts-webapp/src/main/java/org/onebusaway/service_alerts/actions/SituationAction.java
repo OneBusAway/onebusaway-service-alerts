@@ -19,7 +19,9 @@ import org.onebusaway.presentation.bundles.service_alerts.EnvironmentReasons;
 import org.onebusaway.presentation.bundles.service_alerts.EquipmentReasons;
 import org.onebusaway.presentation.bundles.service_alerts.MiscellaneousReasons;
 import org.onebusaway.presentation.bundles.service_alerts.PersonnelReasons;
+import org.onebusaway.presentation.bundles.service_alerts.Sensitivity;
 import org.onebusaway.presentation.bundles.service_alerts.ServiceConditions;
+import org.onebusaway.presentation.bundles.service_alerts.Severity;
 import org.onebusaway.presentation.impl.StackInterceptor.AddToStack;
 import org.onebusaway.service_alerts.impl.SituationConfigSummaryComparator;
 import org.onebusaway.service_alerts.impl.SituationConfigVisibilityComparator;
@@ -232,12 +234,12 @@ public class SituationAction extends ActionSupport implements
       for (String token : _groupProperty)
         group.putEncodedProperty(token);
     }
-    
+
     /**
      * Create the situation
      */
     _model = _situationService.createSituation(group);
-    
+
     /**
      * Automatically resolve an unresolved alert on creation?
      */
@@ -416,6 +418,14 @@ public class SituationAction extends ActionSupport implements
 
   public Map<String, String> getServiceConditionValues() {
     return ResourceBundleSupport.getLocaleMap(this, ServiceConditions.class);
+  }
+
+  public Map<String, String> getSeverityValues() {
+    return ResourceBundleSupport.getLocaleMap(this, Severity.class);
+  }
+
+  public Map<String, String> getSensitivityValues() {
+    return ResourceBundleSupport.getLocaleMap(this, Sensitivity.class);
   }
 
   /****

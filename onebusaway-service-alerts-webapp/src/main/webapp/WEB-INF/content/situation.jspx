@@ -75,6 +75,10 @@ jQuery(document).ready(function() {
 <s:select label="Miscellaneous" name="situation.miscellaneousReason" headerKey="null" headerValue="Select Reason" list="miscellaneousReasonValues" value="%{situation.miscellaneousReason}"/>
 <s:textfield label="Other" name="situation.undefinedReason" value="%{situation.undefinedReason}"/>
 
+<s:select label="Severity" name="situation.severity" headerKey="" headerValue="Select Severity" list="severityValues" value="%{situation.severity}"/>
+<s:select label="Sensitivity" name="situation.sensitivity" headerKey="" headerValue="Select Sensitivity" list="sensitivityValues" value="%{situation.sensitivity}"/>
+
+
 <s:hidden key="id" value="%{id}"/>
 <s:submit value="Save Details"/>
 </s:form>

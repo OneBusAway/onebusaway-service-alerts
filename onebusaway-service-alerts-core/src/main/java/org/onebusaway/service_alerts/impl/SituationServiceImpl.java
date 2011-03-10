@@ -25,6 +25,7 @@ import org.onebusaway.service_alerts.services.SiriService;
 import org.onebusaway.service_alerts.services.SituationService;
 import org.onebusaway.siri.ConditionDetails;
 import org.onebusaway.siri.core.SiriServer;
+import org.onebusaway.transit_data.model.service_alerts.ESeverity;
 import org.onebusaway.transit_data.model.service_alerts.NaturalLanguageStringBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedAgencyBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedCallBean;
@@ -64,6 +65,7 @@ import uk.org.siri.siri.PtConsequencesStructure;
 import uk.org.siri.siri.PtSituationElementStructure;
 import uk.org.siri.siri.ServiceConditionEnumeration;
 import uk.org.siri.siri.ServiceDelivery;
+import uk.org.siri.siri.SeverityEnumeration;
 import uk.org.siri.siri.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri.SituationExchangeDeliveryStructure.Situations;
 import uk.org.siri.siri.SituationVersion;
@@ -244,6 +246,9 @@ class SituationServiceImpl implements SituationService {
     model.setMiscellaneousReason(situation.getMiscellaneousReason());
     model.setPersonnelReason(situation.getPersonnelReason());
     model.setUndefinedReason(situation.getUndefinedReason());
+    
+    model.setSensitivity(situation.getSensitivity());
+    model.setSeverity(situation.getSeverity());
 
     handleUpdate(config);
 
@@ -617,6 +622,13 @@ class SituationServiceImpl implements SituationService {
       ptSituation.setPersonnelReason(PersonnelReasonEnumeration.fromValue(personReason));
 
     ptSituation.setUndefinedReason(situation.getUndefinedReason());
+    
+    ESeverity severity = situation.getSeverity();
+    if( severity != null) {
+      String[] tpegCodes = severity.getTpegCodes();
+      SeverityEnumeration severityEnum = SeverityEnumeration.fromValue(tpegCodes[0]);
+      ptSituation.setSeverity(severityEnum);
+    }
 
     constructionSiriSituationAffects(situation, ptSituation);
     constructSiriSituationConsequences(situation, ptSituation);
