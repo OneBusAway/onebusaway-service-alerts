@@ -17,7 +17,7 @@
   <properties>
     <onebusaway-version>0.2.0-SNAPSHOT</onebusaway-version>
     <onebusaway-collections-version>1.1.1-SNAPSHOT</onebusaway-collections-version>
-    <onebusaway-siri-version>0.0.3-SNAPSHOT</onebusaway-siri-version>
+    <onebusaway-siri-version>0.1.0-SNAPSHOT</onebusaway-siri-version>
     <spring-version>3.0.3.RELEASE</spring-version>
     <struts-version>2.1.8.1</struts-version>
   </properties>

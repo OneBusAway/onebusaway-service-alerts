@@ -37,6 +37,9 @@ public interface SituationService {
   public SituationConfiguration setAffectedVehicleJourneyStopCallForSituation(
       String id, String routeId, String directionId, String stopId,
       boolean active);
+  
+  public SituationConfiguration setAffectedApplicationForSituation(String id,
+      String apiKey, boolean active);
 
   public SituationConfiguration addConsequenceForSituation(String id,
       SituationConsequenceBean consequence);

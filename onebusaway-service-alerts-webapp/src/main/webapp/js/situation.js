@@ -8,6 +8,7 @@ var oba_service_alerts_situation = function(data) {
 	var affectedStopsById = {};
 	var affectedVehicleJourneysById = {};
 	var affectedVehicleJourneyStopCallsById = {};
+	var affectedApplicationsById = {};
 
 	/***************************************************************************
 	 * 
@@ -111,6 +112,21 @@ var oba_service_alerts_situation = function(data) {
 					refreshAffectedVehicleJourney(
 							affectedVehicleJourneysElement, this);
 				});
+		
+		/***********************************************************************
+		 * Applications
+		 **********************************************************************/
+
+		var affectedApplications = affected.applications || [];
+
+		var affectedApplicationsElement = jQuery('#affectedApplications');
+		affectedApplicationsElement.empty();
+		
+		affectedApplicationsById = {};
+
+		jQuery.each(affectedApplications, function() {
+			refreshAffectedApplication(affectedApplicationsElement, this);
+		});
 		
 		/****
 		 * 
@@ -581,6 +597,65 @@ var oba_service_alerts_situation = function(data) {
 		params.enabled = enabled;
 		jQuery.getJSON(url, params, configRawHandler);
 	};
+	
+	/***************************************************************************
+	 * Affected Agencies
+	 **************************************************************************/
+
+	var refreshAffectedApplication = function(affectedApplicationsElement, entry) {
+
+		var content = jQuery('.affectedApplicationTemplate').clone();
+		content.removeClass('affectedApplicationTemplate');
+		content.addClass('affectedApplication');
+
+		content.find('.name').text(entry.apiKey);
+
+		var removeElement = content.find('a');
+		removeElement.click(function() {
+			updateAffectedApplication(entry.apiKey, false);
+		});
+
+		content.appendTo(affectedApplicationsElement);
+		content.show();
+
+		affectedApplicationsById[entry.apiKey] = true;
+	};
+
+	var updateAffectedApplication = function(apiKey, enabled) {
+		var url = 'situation!updateAffectedApplication.action';
+		var params = {};
+		params.id = data.id;
+		params.apiKey = apiKey;
+		params.enabled = enabled;
+		jQuery.getJSON(url, params, configRawHandler);
+	};
+
+	var addAffectedApplication = function() {
+
+		var content = jQuery('.affectedApplicationDialogTemplate').clone();
+		content.removeClass('affectedApplicationDialogTemplate');		
+		content.addClass('affectedApplicationDialog');
+
+		var apiKeyElement = content.find('.apiKey');
+		var submitButton = content.find('.submit');
+		submitButton.click(function() {
+			updateAffectedApplication(apiKeyElement.val(),true);
+			content.dialog('close');
+		});
+
+		var dialogOptions = {
+			title : 'Enter an API Key',
+			modal : true,
+			width : '50%'
+		};
+
+		content.show();
+		content.dialog(dialogOptions);
+
+		return false;
+	};
+
+	jQuery('#addAffectedApplication').click(addAffectedApplication);
 
 	/***************************************************************************
 	 * Consequences

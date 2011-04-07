@@ -146,6 +146,25 @@ jQuery(document).ready(function() {
 
 <p><a id="addAffectedVehicleJourney" href="javascript:void(0)">Add an affected vehicle journey</a></p>
 
+
+<!-- Applications -->
+
+<h4>Applications</h4>
+
+<div id="affectedApplications"><jsp:text></jsp:text></div>
+
+<div class="affectedApplicationTemplate" style="display:none">
+<span class="name"><jsp:text></jsp:text></span> - <a href="javascript:void(0)">Remove</a>
+</div>
+
+<p><a id="addAffectedApplication" href="javascript:void(0)">Add an affected application</a></p>
+
+<div class="affectedApplicationDialogTemplate" style="display:none">
+  <input class="apiKey" type="text"/> <input type="button" class="submit" value="Add API Key"/>
+</div>
+
+
+
 <h3>Consequences</h3>
 
 <ul id="consequences">

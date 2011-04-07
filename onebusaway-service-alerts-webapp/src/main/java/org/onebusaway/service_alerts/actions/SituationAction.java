@@ -78,6 +78,8 @@ public class SituationAction extends ActionSupport implements
 
   private String _directionId;
 
+  private String _apiKey;
+
   private List<SituationConfiguration> _models;
 
   private SituationConfiguration _model = new SituationConfiguration();
@@ -166,6 +168,14 @@ public class SituationAction extends ActionSupport implements
 
   public String getDirectionId() {
     return _directionId;
+  }
+
+  public void setApiKey(String apiKey) {
+    _apiKey = apiKey;
+  }
+
+  public String getApiKey() {
+    return _apiKey;
   }
 
   public void setEnabled(boolean enabled) {
@@ -357,6 +367,15 @@ public class SituationAction extends ActionSupport implements
   public String updateAffectedVehicleJourneyStopCall() {
     _model = _situationService.setAffectedVehicleJourneyStopCallForSituation(
         _model.getId(), _routeId, _directionId, _stopId, _enabled);
+    if (_model == null)
+      return INPUT;
+    fillResponse();
+    return "json";
+  }
+
+  public String updateAffectedApplication() {
+    _model = _situationService.setAffectedApplicationForSituation(
+        _model.getId(), _apiKey, _enabled);
     if (_model == null)
       return INPUT;
     fillResponse();

@@ -23,11 +23,15 @@ import org.onebusaway.service_alerts.model.properties.EAlertPropertyType;
 import org.onebusaway.service_alerts.services.AlertDao;
 import org.onebusaway.service_alerts.services.SiriService;
 import org.onebusaway.service_alerts.services.SituationService;
-import org.onebusaway.siri.ConditionDetails;
+import org.onebusaway.siri.AffectedApplicationStructure;
+import org.onebusaway.siri.OneBusAwayAffects;
+import org.onebusaway.siri.OneBusAwayAffectsStructure;
+import org.onebusaway.siri.OneBusAwayConsequence;
 import org.onebusaway.siri.core.SiriServer;
 import org.onebusaway.transit_data.model.service_alerts.ESeverity;
 import org.onebusaway.transit_data.model.service_alerts.NaturalLanguageStringBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedAgencyBean;
+import org.onebusaway.transit_data.model.service_alerts.SituationAffectedApplicationBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedCallBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedStopBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedVehicleJourneyBean;
@@ -246,7 +250,7 @@ class SituationServiceImpl implements SituationService {
     model.setMiscellaneousReason(situation.getMiscellaneousReason());
     model.setPersonnelReason(situation.getPersonnelReason());
     model.setUndefinedReason(situation.getUndefinedReason());
-    
+
     model.setSensitivity(situation.getSensitivity());
     model.setSeverity(situation.getSeverity());
 
@@ -454,6 +458,49 @@ class SituationServiceImpl implements SituationService {
   }
 
   @Override
+  public SituationConfiguration setAffectedApplicationForSituation(String id,
+      String apiKey, boolean active) {
+
+    SituationConfiguration config = _dao.getConfigurationForId(id);
+    if (config == null)
+      return null;
+
+    SituationBean situation = config.getSituation();
+    SituationAffectsBean affects = getAffectsForSituation(situation);
+
+    List<SituationAffectedApplicationBean> applications = affects.getApplications();
+
+    if (active) {
+
+      if (applications == null) {
+        applications = new ArrayList<SituationAffectedApplicationBean>();
+        affects.setApplications(applications);
+      }
+
+      SituationAffectedApplicationBean match = FunctionalLibrary.filterFirst(
+          applications, "apiKey", apiKey);
+
+      if (match == null) {
+        match = new SituationAffectedApplicationBean();
+        match.setApiKey(apiKey);
+        applications.add(match);
+        handleUpdate(config);
+      }
+    } else {
+      if (applications != null) {
+
+        List<SituationAffectedApplicationBean> matches = FunctionalLibrary.filter(
+            applications, "apiKey", apiKey);
+
+        if (applications.removeAll(matches))
+          handleUpdate(config);
+      }
+    }
+
+    return config;
+  }
+
+  @Override
   public SituationConfiguration addConsequenceForSituation(String id,
       SituationConsequenceBean consequence) {
 
@@ -622,9 +669,9 @@ class SituationServiceImpl implements SituationService {
       ptSituation.setPersonnelReason(PersonnelReasonEnumeration.fromValue(personReason));
 
     ptSituation.setUndefinedReason(situation.getUndefinedReason());
-    
+
     ESeverity severity = situation.getSeverity();
-    if( severity != null) {
+    if (severity != null) {
       String[] tpegCodes = severity.getTpegCodes();
       SeverityEnumeration severityEnum = SeverityEnumeration.fromValue(tpegCodes[0]);
       ptSituation.setSeverity(severityEnum);
@@ -717,6 +764,26 @@ class SituationServiceImpl implements SituationService {
           journeys.getAffectedVehicleJourney().add(sAffectedVehicleJourney);
         }
       }
+
+      /**
+       * Affected Applications
+       */
+      if (!CollectionsLibrary.isEmpty(affects.getApplications())) {
+
+        OneBusAwayAffects obaAffects = new OneBusAwayAffects();
+        ExtensionsStructure extension = new ExtensionsStructure();
+        extension.setAny(obaAffects);
+        sAffects.setExtensions(extension);
+
+        OneBusAwayAffectsStructure.Applications applications = new OneBusAwayAffectsStructure.Applications();
+        obaAffects.setApplications(applications);
+
+        for (SituationAffectedApplicationBean affectedApplication : affects.getApplications()) {
+          AffectedApplicationStructure sAffectedApplication = new AffectedApplicationStructure();
+          sAffectedApplication.setApiKey(affectedApplication.getApiKey());
+          applications.getAffectedApplication().add(sAffectedApplication);
+        }
+      }
     }
   }
 
@@ -740,13 +807,13 @@ class SituationServiceImpl implements SituationService {
 
         if (details != null && details.getDiversionPath() != null) {
 
-          ConditionDetails ptDetails = new ConditionDetails();
+          OneBusAwayConsequence obaConsequence = new OneBusAwayConsequence();
 
           EncodedPolylineBean path = details.getDiversionPath();
-          ptDetails.setDiversionPath(path.getPoints());
+          obaConsequence.setDiversionPath(path.getPoints());
 
           ExtensionsStructure extension = new ExtensionsStructure();
-          extension.setAny(ptDetails);
+          extension.setAny(obaConsequence);
           ptConsequence.setExtensions(extension);
         }
       }
