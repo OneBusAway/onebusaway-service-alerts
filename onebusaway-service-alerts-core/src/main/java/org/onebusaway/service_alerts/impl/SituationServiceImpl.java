@@ -318,12 +318,15 @@ class SituationServiceImpl implements SituationService {
   }
 
   @Override
-  public SituationConfiguration setAffectedStopForSituation(String id,
-      String stopId, boolean active) {
+  public SituationConfiguration setAffectedStopsForSituation(String id,
+      List<String> stopIds, boolean active) {
 
     SituationConfiguration config = _dao.getConfigurationForId(id);
     if (config == null)
       return null;
+
+    if (stopIds.isEmpty())
+      return config;
 
     SituationBean situation = config.getSituation();
     SituationAffectsBean affects = getAffectsForSituation(situation);
@@ -337,22 +340,37 @@ class SituationServiceImpl implements SituationService {
         affects.setStops(stops);
       }
 
-      SituationAffectedStopBean match = FunctionalLibrary.filterFirst(stops,
-          "stopId", stopId);
+      boolean updated = false;
 
-      if (match == null) {
-        match = new SituationAffectedStopBean();
-        match.setStopId(stopId);
-        stops.add(match);
-        handleUpdate(config);
+      for (String stopId : stopIds) {
+
+        SituationAffectedStopBean match = FunctionalLibrary.filterFirst(stops,
+            "stopId", stopId);
+
+        if (match == null) {
+          match = new SituationAffectedStopBean();
+          match.setStopId(stopId);
+          stops.add(match);
+          updated = true;
+        }
       }
+
+      if (updated)
+        handleUpdate(config);
+
     } else {
       if (stops != null) {
 
-        List<SituationAffectedStopBean> matches = FunctionalLibrary.filter(
-            stops, "stopId", stopId);
+        boolean updated = false;
 
-        if (stops.removeAll(matches))
+        for (String stopId : stopIds) {
+          List<SituationAffectedStopBean> matches = FunctionalLibrary.filter(
+              stops, "stopId", stopId);
+
+          updated |= stops.removeAll(matches);
+        }
+
+        if (updated)
           handleUpdate(config);
       }
     }

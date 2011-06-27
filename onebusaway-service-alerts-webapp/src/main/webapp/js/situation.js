@@ -314,8 +314,30 @@ var oba_service_alerts_situation = function(data) {
 			updateAffectedStop(stop, enabled);
 		});
 	};
+	
+	var addAffectedStopsInBulk = function() {
+
+		var content = jQuery('.affectedStopsInBulkDialogTemplate').clone();		
+		content.addClass('stopBulkSelectionDialog');
+
+		var dialogOptions = {
+			title : 'Select Stops',
+			modal : true,
+			width : '90%',
+			height : 700
+		};
+		
+		content.find('.subitButton').click(function() {
+			
+		});
+
+		content.dialog(dialogOptions);
+		
+		return false;
+	};
 
 	jQuery('#addAffectedStop').click(addAffectedStop);
+	jQuery('#addAffectedStopsInBulk').clikc(addAffectedStopsInBulk);
 
 	/***************************************************************************
 	 * Affected Vehicle Journeys

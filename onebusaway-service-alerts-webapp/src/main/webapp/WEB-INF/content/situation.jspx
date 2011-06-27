@@ -108,6 +108,12 @@ jQuery(document).ready(function() {
 </div>
 
 <p><a id="addAffectedStop" href="javascript:void(0)">Add an affected stop</a></p>
+<p><a id="addAffectedStopsInBulk" href="javascript:void(0)">Add affected stops in bulk</a></p>
+
+<div class="affectedStopsInBulkDialogTemplate" style="display:none">
+<textarea class="bulkStopIds" cols="20" rows="60"><jsp:text></jsp:text></textarea>
+<input class="submitButton" type="button" value="Submit"/>
+</div>
 
 <h4>Vehicle Journeys</h4>
 

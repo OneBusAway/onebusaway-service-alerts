@@ -72,7 +72,7 @@ public class SituationAction extends ActionSupport implements
 
   private String _id;
 
-  private String _stopId;
+  private List<String> _stopIds = Collections.emptyList();
 
   private String _routeId;
 
@@ -146,12 +146,12 @@ public class SituationAction extends ActionSupport implements
     return _agencyId;
   }
 
-  public void setStopId(String stopId) {
-    _stopId = stopId;
+  public void setStopId(List<String> stopIds) {
+    _stopIds = stopIds;
   }
 
-  public String getStopId() {
-    return _stopId;
+  public List<String> getStopId() {
+    return _stopIds;
   }
 
   public void setRouteId(String routeId) {
@@ -347,8 +347,8 @@ public class SituationAction extends ActionSupport implements
   }
 
   public String updateAffectedStop() {
-    _model = _situationService.setAffectedStopForSituation(_model.getId(),
-        _stopId, _enabled);
+    _model = _situationService.setAffectedStopsForSituation(_model.getId(),
+        _stopIds, _enabled);
     if (_model == null)
       return INPUT;
     fillResponse();
@@ -365,8 +365,10 @@ public class SituationAction extends ActionSupport implements
   }
 
   public String updateAffectedVehicleJourneyStopCall() {
+    if( _stopIds.isEmpty() )
+      return INPUT;
     _model = _situationService.setAffectedVehicleJourneyStopCallForSituation(
-        _model.getId(), _routeId, _directionId, _stopId, _enabled);
+        _model.getId(), _routeId, _directionId, _stopIds.get(0), _enabled);
     if (_model == null)
       return INPUT;
     fillResponse();

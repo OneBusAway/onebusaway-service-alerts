@@ -1,5 +1,7 @@
 package org.onebusaway.service_alerts.services;
 
+import java.util.List;
+
 import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.properties.AlertProperties;
 import org.onebusaway.transit_data.model.service_alerts.SituationBean;
@@ -28,8 +30,8 @@ public interface SituationService {
   public SituationConfiguration setAffectedAgencyForSituation(String id,
       String agencyId, boolean active);
 
-  public SituationConfiguration setAffectedStopForSituation(String id,
-      String stopId, boolean active);
+  public SituationConfiguration setAffectedStopsForSituation(String id,
+      List<String> stopIds, boolean active);
 
   public SituationConfiguration setAffectedVehicleJourneyForSituation(
       String id, String routeId, String directionId, boolean active);
