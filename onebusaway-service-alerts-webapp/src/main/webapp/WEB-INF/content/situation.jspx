@@ -111,7 +111,7 @@ jQuery(document).ready(function() {
 <p><a id="addAffectedStopsInBulk" href="javascript:void(0)">Add affected stops in bulk</a></p>
 
 <div class="affectedStopsInBulkDialogTemplate" style="display:none">
-<textarea class="bulkStopIds" cols="20" rows="60"><jsp:text></jsp:text></textarea>
+<textarea class="bulkStopIds" cols="20" rows="20"><jsp:text></jsp:text></textarea>
 <input class="submitButton" type="button" value="Submit"/>
 </div>
 
@@ -126,6 +126,9 @@ jQuery(document).ready(function() {
   <li><a class="configureCalls" href="javascript:void(0)">Configure Calls</a></li>
   <ul class="calls">
     <li class="callTemplate" style="display: none"><span class="stopName">Stop Name</span><jsp:text> - </jsp:text><span class="stopCode"><s:text name="StopNum"/></span><span class="stopDirection"> - <s:text name="bound"/></span> - <a href="javascript:void(0)">Remove</a></li>
+  </ul>
+  <ul class="trips">
+    <li class="tripTemplate" style="display: none"><span class="tripId">TripId</span><jsp:text> - </jsp:text><a href="javascript:void(0)">Remove</a></li>
   </ul>
 </ul>
 </div>
@@ -150,8 +153,14 @@ jQuery(document).ready(function() {
 </ul>
 </div>
 
-<p><a id="addAffectedVehicleJourney" href="javascript:void(0)">Add an affected vehicle journey</a></p>
+<div class="affectedJourneysInBulkDialogTemplate" style="display:none">
+<textarea class="bulkIds" cols="20" rows="20"><jsp:text></jsp:text></textarea>
+<input class="submitButton" type="button" value="Submit"/>
+</div>
 
+<p><a id="addAffectedVehicleJourney" href="javascript:void(0)">Add an affected vehicle journey</a></p>
+<p><a id="addAffectedRoutesInBulk" href="javascript:void(0)">Add affected routes in bulk</a></p>
+<p><a id="addAffectedTripsInBulk" href="javascript:void(0)">Add affected trips in bulk</a></p>
 
 <!-- Applications -->
 

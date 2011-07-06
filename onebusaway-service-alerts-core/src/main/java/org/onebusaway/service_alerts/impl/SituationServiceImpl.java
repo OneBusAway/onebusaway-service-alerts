@@ -5,8 +5,11 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -74,6 +77,7 @@ import uk.org.siri.siri.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri.SituationExchangeDeliveryStructure.Situations;
 import uk.org.siri.siri.SituationVersion;
 import uk.org.siri.siri.StopPointRefStructure;
+import uk.org.siri.siri.VehicleJourneyRefStructure;
 import uk.org.siri.siri.WorkflowStatusEnumeration;
 
 @Component
@@ -114,11 +118,15 @@ class SituationServiceImpl implements SituationService {
     File path = _bundle.getSituationConfigurationsPath();
 
     if (path.exists()) {
-      Collection<SituationConfiguration> configs = ObjectSerializationLibrary.readObject(path);
-      for (SituationConfiguration config : configs) {
-        // Default to not visible
-        config.setVisible(false);
-        _dao.addConfiguration(config);
+      try {
+        Collection<SituationConfiguration> configs = ObjectSerializationLibrary.readObject(path);
+        for (SituationConfiguration config : configs) {
+          // Default to not visible
+          config.setVisible(false);
+          _dao.addConfiguration(config);
+        }
+      } catch (Throwable ex) {
+        _log.warn("error loading situation configurations from " + path, ex);
       }
     }
 
@@ -416,6 +424,146 @@ class SituationServiceImpl implements SituationService {
 
         if (vehicleJourneys.removeAll(matches))
           handleUpdate(config);
+      }
+    }
+
+    return config;
+  }
+
+  @Override
+  public SituationConfiguration setAffectedVehicleJourneysForSituation(
+      String id, List<String> routeIds, boolean active) {
+
+    SituationConfiguration config = _dao.getConfigurationForId(id);
+    if (config == null)
+      return null;
+
+    SituationBean situation = config.getSituation();
+    SituationAffectsBean affects = getAffectsForSituation(situation);
+
+    List<SituationAffectedVehicleJourneyBean> vehicleJourneys = affects.getVehicleJourneys();
+
+    if (active) {
+
+      if (vehicleJourneys == null) {
+        vehicleJourneys = new ArrayList<SituationAffectedVehicleJourneyBean>();
+        affects.setVehicleJourneys(vehicleJourneys);
+      }
+
+      boolean update = false;
+
+      for (String routeId : routeIds) {
+        SituationAffectedVehicleJourneyBean match = filterFirst(
+            vehicleJourneys, routeId, null);
+        if (match == null) {
+          match = new SituationAffectedVehicleJourneyBean();
+          match.setLineId(routeId);
+          match.setDirection(null);
+          vehicleJourneys.add(match);
+          update = true;
+        }
+      }
+
+      if (update)
+        handleUpdate(config);
+
+    } else {
+      if (vehicleJourneys != null) {
+
+        boolean update = false;
+
+        for (String routeId : routeIds) {
+          List<SituationAffectedVehicleJourneyBean> matches = filter(
+              vehicleJourneys, routeId, null);
+          update |= vehicleJourneys.removeAll(matches);
+        }
+
+        if (update)
+          handleUpdate(config);
+      }
+    }
+
+    return config;
+  }
+
+  @Override
+  public SituationConfiguration setAffectedVehicleJourneyTripsForSituation(
+      String id, List<String> tripIds, boolean active) {
+
+    SituationConfiguration config = _dao.getConfigurationForId(id);
+    if (config == null)
+      return null;
+
+    if (CollectionsLibrary.isEmpty(tripIds))
+      return config;
+
+    SituationBean situation = config.getSituation();
+    SituationAffectsBean affects = getAffectsForSituation(situation);
+
+    List<SituationAffectedVehicleJourneyBean> vehicleJourneys = affects.getVehicleJourneys();
+
+    if (active) {
+
+      if (vehicleJourneys == null) {
+        vehicleJourneys = new ArrayList<SituationAffectedVehicleJourneyBean>();
+        affects.setVehicleJourneys(vehicleJourneys);
+      }
+
+      boolean update = false;
+
+      /**
+       * We want the vehicle with neither route nor direction. That's the one
+       * we'll attach trip ids to.
+       */
+      SituationAffectedVehicleJourneyBean match = filterFirst(vehicleJourneys,
+          null, null);
+
+      if (match == null) {
+        /**
+         * No match? Create a new affected vehicle journey
+         */
+        match = new SituationAffectedVehicleJourneyBean();
+        match.setLineId(null);
+        match.setDirection(null);
+        match.setTripIds(tripIds);
+        vehicleJourneys.add(match);
+        update = true;
+      } else {
+        /**
+         * Update the ids as appropriate
+         */
+        Set<String> existingTripIds = new HashSet<String>();
+        if (match.getTripIds() != null)
+          existingTripIds.addAll(match.getTripIds());
+        if (existingTripIds.addAll(tripIds)) {
+          List<String> updatedTripIds = new ArrayList<String>(existingTripIds);
+          Collections.sort(updatedTripIds);
+          match.setTripIds(updatedTripIds);
+          update = true;
+        }
+      }
+
+      if (update)
+        handleUpdate(config);
+
+    } else {
+
+      if (vehicleJourneys != null) {
+
+        SituationAffectedVehicleJourneyBean match = filterFirst(
+            vehicleJourneys, null, null);
+
+        if (match != null) {
+          Set<String> existingTripIds = new HashSet<String>();
+          if (match.getTripIds() != null)
+            existingTripIds.addAll(match.getTripIds());
+          if (existingTripIds.removeAll(tripIds)) {
+            List<String> updatedTripIds = new ArrayList<String>(existingTripIds);
+            Collections.sort(updatedTripIds);
+            match.setTripIds(updatedTripIds);
+            handleUpdate(config);
+          }
+        }
       }
     }
 
@@ -754,9 +902,11 @@ class SituationServiceImpl implements SituationService {
 
           AffectedVehicleJourneyStructure sAffectedVehicleJourney = new AffectedVehicleJourneyStructure();
 
-          LineRefStructure lineId = new LineRefStructure();
-          lineId.setValue(affectedVehicleJourney.getLineId());
-          sAffectedVehicleJourney.setLineRef(lineId);
+          if (affectedVehicleJourney.getLineId() != null) {
+            LineRefStructure lineId = new LineRefStructure();
+            lineId.setValue(affectedVehicleJourney.getLineId());
+            sAffectedVehicleJourney.setLineRef(lineId);
+          }
 
           if (affectedVehicleJourney.getDirection() != null) {
             DirectionRefStructure directionId = new DirectionRefStructure();
@@ -776,6 +926,17 @@ class SituationServiceImpl implements SituationService {
               stopPointRef.setValue(call.getStopId());
               sCall.setStopPointRef(stopPointRef);
               sCalls.getCall().add(sCall);
+            }
+          }
+
+          List<String> tripIds = affectedVehicleJourney.getTripIds();
+
+          if (!CollectionsLibrary.isEmpty(tripIds)) {
+            List<VehicleJourneyRefStructure> refs = sAffectedVehicleJourney.getVehicleJourneyRef();
+            for (String tripId : tripIds) {
+              VehicleJourneyRefStructure ref = new VehicleJourneyRefStructure();
+              ref.setValue(tripId);
+              refs.add(ref);
             }
           }
 
@@ -850,7 +1011,11 @@ class SituationServiceImpl implements SituationService {
     situationExchangeDeliveries.add(situationExchangeDelivery);
 
     SiriServer server = _sirivService.getServer();
-    server.publish(serviceDelivery);
+    try {
+      server.publish(serviceDelivery);
+    } catch (Throwable ex) {
+      ex.printStackTrace();
+    }
   }
 
   private DefaultedTextStructure text(NaturalLanguageStringBean nls) {

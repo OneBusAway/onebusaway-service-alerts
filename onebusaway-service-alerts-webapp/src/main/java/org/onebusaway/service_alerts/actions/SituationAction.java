@@ -75,6 +75,8 @@ public class SituationAction extends ActionSupport implements
   private List<String> _stopIds = Collections.emptyList();
 
   private String _routeId;
+  
+  private String _routeIds;
 
   private String _directionId;
 
@@ -160,6 +162,14 @@ public class SituationAction extends ActionSupport implements
 
   public String getRouteId() {
     return _routeId;
+  }
+  
+  public void setRouteIds(String routeIds) {
+    _routeIds = routeIds;
+  }
+  
+  public String getRouteIds() {
+    return _routeIds;
   }
 
   public void setDirectionId(String directionId) {
@@ -365,7 +375,7 @@ public class SituationAction extends ActionSupport implements
   }
 
   public String updateAffectedVehicleJourneyStopCall() {
-    if( _stopIds.isEmpty() )
+    if (_stopIds.isEmpty())
       return INPUT;
     _model = _situationService.setAffectedVehicleJourneyStopCallForSituation(
         _model.getId(), _routeId, _directionId, _stopIds.get(0), _enabled);
@@ -513,6 +523,8 @@ public class SituationAction extends ActionSupport implements
       List<SituationAffectedVehicleJourneyBean> journeys = affects.getVehicleJourneys();
       if (journeys != null) {
         for (SituationAffectedVehicleJourneyBean journey : journeys) {
+          if( journey.getLineId() == null)
+            continue;
           RouteBean route = _transitDataService.getRouteForId(journey.getLineId());
           if (route != null)
             factory.addToReferences(route);

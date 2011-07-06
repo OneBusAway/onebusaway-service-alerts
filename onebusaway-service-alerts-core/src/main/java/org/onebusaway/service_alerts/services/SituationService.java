@@ -8,18 +8,18 @@ import org.onebusaway.transit_data.model.service_alerts.SituationBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationConsequenceBean;
 
 public interface SituationService {
-  
+
   public void saveAllAlerts();
-  
+
   public SituationConfiguration getDefaultSituation();
 
   public SituationConfiguration createSituation(AlertProperties group);
-  
+
   public SituationConfiguration createSituation(
       SituationConfiguration configuration);
 
   /****
-   * 
+   *
    ****/
 
   public SituationConfiguration updateConfigurationDetails(String id,
@@ -36,10 +36,16 @@ public interface SituationService {
   public SituationConfiguration setAffectedVehicleJourneyForSituation(
       String id, String routeId, String directionId, boolean active);
 
+  public SituationConfiguration setAffectedVehicleJourneysForSituation(
+      String id, List<String> routeIds, boolean active);
+  
+  public SituationConfiguration setAffectedVehicleJourneyTripsForSituation(
+      String id, List<String> tripIds, boolean active);
+
   public SituationConfiguration setAffectedVehicleJourneyStopCallForSituation(
       String id, String routeId, String directionId, String stopId,
       boolean active);
-  
+
   public SituationConfiguration setAffectedApplicationForSituation(String id,
       String apiKey, boolean active);
 

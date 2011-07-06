@@ -337,7 +337,7 @@ var oba_service_alerts_situation = function(data) {
 	};
 
 	jQuery('#addAffectedStop').click(addAffectedStop);
-	jQuery('#addAffectedStopsInBulk').clikc(addAffectedStopsInBulk);
+	jQuery('#addAffectedStopsInBulk').click(addAffectedStopsInBulk);
 
 	/***************************************************************************
 	 * Affected Vehicle Journeys
@@ -347,19 +347,18 @@ var oba_service_alerts_situation = function(data) {
 		var lineId = entry.lineId || '';
 		var directionId = entry.directionId || '';
 		return lineId + '|' + directionId + '|' + stopId;
-	}
+	};
 
 	var refreshAffectedVehicleJourney = function(
 			affectedVehicleJourneysElement, entry) {
-
-		var route = entry.route;
 
 		var content = jQuery('.affectedVehicleJourneyTemplate').clone();
 		content.removeClass('affectedVehicleJourneyTemplate');
 		content.addClass('affectedVehicleJourney');
 
-		content.find('.routeName').text(
-				OBA.Presentation.getNameForRoute(entry.route));
+		if( entry.route ) {
+			content.find('.routeName').text(OBA.Presentation.getNameForRoute(entry.route));
+		}
 
 		var desc = content.find('.routeDescription');
 		if (entry.directionId)
@@ -395,6 +394,30 @@ var oba_service_alerts_situation = function(data) {
 
 			var key = keyForVehicleJourneyCall(entry, call.stopId);
 			affectedVehicleJourneyStopCallsById[key] = true;
+		});
+		
+		var tripsElement = content.find('ul.trips');
+		var tripIds = entry.tripIds || [];
+		jQuery.each(tripIds, function(i,tripId) {
+			
+			var element = tripsElement.find('.tripTemplate').clone();
+			element.removeClass('tripTemplate');
+			element.addClass('trip');
+
+			element.find('.tripId').text(tripId);
+
+			var anchorElement = element.find('a');
+			anchorElement.click(function() {
+				var url = 'update-affected-trips.action';
+				var params = {};
+				params.id = data.id;
+				params.tripIds = [tripId];
+				params.enabled = false;
+				jQuery.ajax({url: url, dataType: 'json', data: params, traditional: true, success: configRawHandler});
+			});
+
+			element.show();
+			element.appendTo(tripsElement);
 		});
 
 		var removeElement = content.find('a.remove');
@@ -559,8 +582,58 @@ var oba_service_alerts_situation = function(data) {
 		return false;
 
 	};
+	
+	var showAffectedJourneysInBulkDialog = function(label, onSubmitHandler) {
+	
+		var content = jQuery('.affectedJourneysInBulkDialogTemplate').clone();
+		content.removeClass('affectedJourneysInBulkDialogTemplate');
+		content.addClass('affectedJourneysInBulkDialog');
+		
+		var bulkIdsTextArea = content.find('.bulkIds');
+
+		var dialogOptions = {
+			title : label,
+			modal : true,
+			width : '90%',
+			height : 700
+		};
+		
+		content.find('.submitButton').click(function() {
+			var rawText = bulkIdsTextArea.val();
+			content.dialog('close');
+			onSubmitHandler(rawText);
+		});
+
+		content.dialog(dialogOptions);
+		
+		return false;
+	};
+	
+	var showAffectedRoutesInBulkDialog = function() {
+		return showAffectedJourneysInBulkDialog('Select Routes', function(rawText) {
+			var url = 'update-affected-routes.action';
+			var params = {};
+			params.id = data.id;
+			params.routeIds = rawText.split(/[\r\n]+/);
+			params.enabled = true;
+			jQuery.ajax({url: url, dataType: 'json', data: params, traditional: true, success: configRawHandler});
+		});
+	};
+	
+	var showAffectedTripsInBulkDialog = function() {
+		return showAffectedJourneysInBulkDialog('Select Trips', function(rawText) {
+			var url = 'update-affected-trips.action';
+			var params = {};
+			params.id = data.id;
+			params.tripIds = rawText.split(/[\r\n]+/);
+			params.enabled = true;
+			jQuery.ajax({url: url, dataType: 'json', data: params, traditional: true, success: configRawHandler});
+		});
+	};
 
 	jQuery('#addAffectedVehicleJourney').click(addAffectedVehicleJourney);
+	jQuery('#addAffectedRoutesInBulk').click(showAffectedRoutesInBulkDialog);
+	jQuery('#addAffectedTripsInBulk').click(showAffectedTripsInBulkDialog);
 
 	/***************************************************************************
 	 * Affected Vehicle Journey Calls
