@@ -23,7 +23,7 @@ class SiriServiceWebappImpl implements SiriService {
     _server = new SiriServer();
 
     if (_serverUrl != null) {
-      _server.setServerUrl(_serverUrl);
+      _server.setUrl(_serverUrl);
     }
 
     _server.start();
