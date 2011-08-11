@@ -4,8 +4,13 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import org.onebusaway.service_alerts.services.SiriService;
+import org.onebusaway.siri.core.SiriCoreModule;
 import org.onebusaway.siri.core.SiriServer;
+import org.onebusaway.siri.core.guice.LifecycleService;
 import org.springframework.stereotype.Component;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 @Component
 class SiriServiceWebappImpl implements SiriService {
@@ -14,25 +19,29 @@ class SiriServiceWebappImpl implements SiriService {
 
   private String _serverUrl;
 
+  private LifecycleService _lifecycleService;
+
   public void setServerUrl(String serverUrl) {
     _serverUrl = serverUrl;
   }
 
   @PostConstruct
   public void start() {
-    _server = new SiriServer();
+
+    Injector injector = Guice.createInjector(SiriCoreModule.getModules());
+    _server = injector.getInstance(SiriServer.class);
 
     if (_serverUrl != null) {
       _server.setUrl(_serverUrl);
     }
 
-    _server.start();
+    _lifecycleService = injector.getInstance(LifecycleService.class);
+    _lifecycleService.start();
   }
 
   @PreDestroy
   public void stop() {
-    if (_server != null)
-      _server.stop();
+    _lifecycleService.stop();
   }
 
   @Override
