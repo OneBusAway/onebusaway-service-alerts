@@ -10,12 +10,9 @@ import org.onebusaway.api.model.ResponseBean;
 import org.onebusaway.api.model.transit.BeanFactoryV2;
 import org.onebusaway.api.model.transit.EntryWithReferencesBean;
 import org.onebusaway.presentation.bundles.ResourceBundleSupport;
-import org.onebusaway.presentation.bundles.service_alerts.EnvironmentReasons;
-import org.onebusaway.presentation.bundles.service_alerts.EquipmentReasons;
-import org.onebusaway.presentation.bundles.service_alerts.MiscellaneousReasons;
-import org.onebusaway.presentation.bundles.service_alerts.PersonnelReasons;
+import org.onebusaway.presentation.bundles.service_alerts.Effects;
+import org.onebusaway.presentation.bundles.service_alerts.Reasons;
 import org.onebusaway.presentation.bundles.service_alerts.Sensitivity;
-import org.onebusaway.presentation.bundles.service_alerts.ServiceConditions;
 import org.onebusaway.presentation.bundles.service_alerts.Severity;
 import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.SituationConfigurationV2Bean;
@@ -32,7 +29,7 @@ import org.onebusaway.transit_data.model.service_alerts.SituationAffectedCallBea
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedStopBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedVehicleJourneyBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectsBean;
-import org.onebusaway.transit_data.model.service_alerts.SituationBean;
+import org.onebusaway.transit_data.model.service_alerts.ServiceAlertBean;
 import org.onebusaway.transit_data.services.TransitDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -111,24 +108,12 @@ public abstract class SituationActionSupport extends ActionSupport implements
    * Methods
    ****/
 
-  public Map<String, String> getEnvironmentReasonValues() {
-    return ResourceBundleSupport.getLocaleMap(this, EnvironmentReasons.class);
+  public Map<String, String> getReasonValues() {
+    return ResourceBundleSupport.getLocaleMap(this, Reasons.class);
   }
 
-  public Map<String, String> getEquipmentReasonValues() {
-    return ResourceBundleSupport.getLocaleMap(this, EquipmentReasons.class);
-  }
-
-  public Map<String, String> getMiscellaneousReasonValues() {
-    return ResourceBundleSupport.getLocaleMap(this, MiscellaneousReasons.class);
-  }
-
-  public Map<String, String> getPersonnelReasonValues() {
-    return ResourceBundleSupport.getLocaleMap(this, PersonnelReasons.class);
-  }
-
-  public Map<String, String> getServiceConditionValues() {
-    return ResourceBundleSupport.getLocaleMap(this, ServiceConditions.class);
+  public Map<String, String> getEffectValues() {
+    return ResourceBundleSupport.getLocaleMap(this, Effects.class);
   }
 
   public Map<String, String> getSeverityValues() {
@@ -164,8 +149,8 @@ public abstract class SituationActionSupport extends ActionSupport implements
 
     BeanFactoryV2 factory = new BeanFactoryV2(true);
 
-    SituationBean situation = _model.getSituation();
-    SituationAffectsBean affects = situation.getAffects();
+    ServiceAlertBean situation = _model.getSituation();
+    SituationAffectsBean affects = situation.getAllAffects();
 
     if (affects != null) {
       List<SituationAffectedAgencyBean> agencies = affects.getAgencies();

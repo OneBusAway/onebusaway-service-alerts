@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.onebusaway.service_alerts.model.properties.AlertProperties;
-import org.onebusaway.transit_data.model.service_alerts.SituationBean;
+import org.onebusaway.transit_data.model.service_alerts.ServiceAlertBean;
 
 public class SituationConfiguration implements Serializable {
 
@@ -17,7 +17,7 @@ public class SituationConfiguration implements Serializable {
 
   private boolean visible;
 
-  private SituationBean situation;
+  private ServiceAlertBean situation;
 
   private AlertProperties group;
 
@@ -47,11 +47,11 @@ public class SituationConfiguration implements Serializable {
     this.visible = visible;
   }
 
-  public SituationBean getSituation() {
+  public ServiceAlertBean getSituation() {
     return situation;
   }
 
-  public void setSituation(SituationBean situation) {
+  public void setSituation(ServiceAlertBean situation) {
     this.situation = situation;
   }
 

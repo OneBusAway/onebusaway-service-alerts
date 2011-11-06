@@ -4,7 +4,7 @@ import java.util.Comparator;
 
 import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.transit_data.model.service_alerts.NaturalLanguageStringBean;
-import org.onebusaway.transit_data.model.service_alerts.SituationBean;
+import org.onebusaway.transit_data.model.service_alerts.ServiceAlertBean;
 
 public class SituationConfigSummaryComparator implements
     Comparator<SituationConfiguration> {
@@ -20,7 +20,7 @@ public class SituationConfigSummaryComparator implements
 
   private String getSummaryForSituationConfiguration(
       SituationConfiguration config) {
-    SituationBean situation = config.getSituation();
+    ServiceAlertBean situation = config.getSituation();
     if (situation == null)
       return "";
     NaturalLanguageStringBean summary = situation.getSummary();

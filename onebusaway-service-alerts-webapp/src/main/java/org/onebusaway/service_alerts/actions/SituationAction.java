@@ -15,12 +15,9 @@ import org.onebusaway.api.model.transit.EntryWithReferencesBean;
 import org.onebusaway.collections.CollectionsLibrary;
 import org.onebusaway.geospatial.model.EncodedPolylineBean;
 import org.onebusaway.presentation.bundles.ResourceBundleSupport;
-import org.onebusaway.presentation.bundles.service_alerts.EnvironmentReasons;
-import org.onebusaway.presentation.bundles.service_alerts.EquipmentReasons;
-import org.onebusaway.presentation.bundles.service_alerts.MiscellaneousReasons;
-import org.onebusaway.presentation.bundles.service_alerts.PersonnelReasons;
+import org.onebusaway.presentation.bundles.service_alerts.Effects;
+import org.onebusaway.presentation.bundles.service_alerts.Reasons;
 import org.onebusaway.presentation.bundles.service_alerts.Sensitivity;
-import org.onebusaway.presentation.bundles.service_alerts.ServiceConditions;
 import org.onebusaway.presentation.bundles.service_alerts.Severity;
 import org.onebusaway.presentation.impl.StackInterceptor.AddToStack;
 import org.onebusaway.service_alerts.impl.SituationConfigSummaryComparator;
@@ -41,7 +38,7 @@ import org.onebusaway.transit_data.model.service_alerts.SituationAffectedCallBea
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedStopBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedVehicleJourneyBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectsBean;
-import org.onebusaway.transit_data.model.service_alerts.SituationBean;
+import org.onebusaway.transit_data.model.service_alerts.ServiceAlertBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationConditionDetailsBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationConsequenceBean;
 import org.onebusaway.transit_data.services.TransitDataService;
@@ -75,7 +72,7 @@ public class SituationAction extends ActionSupport implements
   private List<String> _stopIds = Collections.emptyList();
 
   private String _routeId;
-  
+
   private String _routeIds;
 
   private String _directionId;
@@ -163,11 +160,11 @@ public class SituationAction extends ActionSupport implements
   public String getRouteId() {
     return _routeId;
   }
-  
+
   public void setRouteIds(String routeIds) {
     _routeIds = routeIds;
   }
-  
+
   public String getRouteIds() {
     return _routeIds;
   }
@@ -288,19 +285,9 @@ public class SituationAction extends ActionSupport implements
 
   public String submitDetails() {
 
-    SituationBean situation = _model.getSituation();
+    ServiceAlertBean situation = _model.getSituation();
 
-    situation.setAdvice(nls(situation.getAdvice()));
-    situation.setDescription(nls(situation.getDescription()));
-    situation.setDetail(nls(situation.getDetail()));
-    situation.setInternal(nls(situation.getInternal()));
-    situation.setSummary(nls(situation.getSummary()));
-
-    situation.setEnvironmentReason(string(situation.getEnvironmentReason()));
-    situation.setEquipmentReason(string(situation.getEquipmentReason()));
-    situation.setPersonnelReason(string(situation.getPersonnelReason()));
-    situation.setMiscellaneousReason(string(situation.getMiscellaneousReason()));
-    situation.setUndefinedReason(string(situation.getUndefinedReason()));
+    situation.setReason(string(situation.getReason()));
 
     _model = _situationService.updateConfigurationDetails(_model.getId(),
         situation);
@@ -431,24 +418,12 @@ public class SituationAction extends ActionSupport implements
    * 
    ****/
 
-  public Map<String, String> getEnvironmentReasonValues() {
-    return ResourceBundleSupport.getLocaleMap(this, EnvironmentReasons.class);
+  public Map<String, String> getReasonValues() {
+    return ResourceBundleSupport.getLocaleMap(this, Reasons.class);
   }
 
-  public Map<String, String> getEquipmentReasonValues() {
-    return ResourceBundleSupport.getLocaleMap(this, EquipmentReasons.class);
-  }
-
-  public Map<String, String> getMiscellaneousReasonValues() {
-    return ResourceBundleSupport.getLocaleMap(this, MiscellaneousReasons.class);
-  }
-
-  public Map<String, String> getPersonnelReasonValues() {
-    return ResourceBundleSupport.getLocaleMap(this, PersonnelReasons.class);
-  }
-
-  public Map<String, String> getServiceConditionValues() {
-    return ResourceBundleSupport.getLocaleMap(this, ServiceConditions.class);
+  public Map<String, String> getEffectValues() {
+    return ResourceBundleSupport.getLocaleMap(this, Effects.class);
   }
 
   public Map<String, String> getSeverityValues() {
@@ -469,10 +444,10 @@ public class SituationAction extends ActionSupport implements
     return value;
   }
 
-  private NaturalLanguageStringBean nls(NaturalLanguageStringBean nls) {
+  private List<NaturalLanguageStringBean> nls(NaturalLanguageStringBean nls) {
     if (nls == null || string(nls.getValue()) == null)
       return null;
-    return nls;
+    return Arrays.asList(nls);
   }
 
   private SituationConsequenceBean fillConsequence() {
@@ -498,8 +473,8 @@ public class SituationAction extends ActionSupport implements
 
     BeanFactoryV2 factory = new BeanFactoryV2(true);
 
-    SituationBean situation = _model.getSituation();
-    SituationAffectsBean affects = situation.getAffects();
+    ServiceAlertBean situation = _model.getSituation();
+    SituationAffectsBean affects = situation.getAllAffects();
 
     if (affects != null) {
       List<SituationAffectedAgencyBean> agencies = affects.getAgencies();
@@ -523,7 +498,7 @@ public class SituationAction extends ActionSupport implements
       List<SituationAffectedVehicleJourneyBean> journeys = affects.getVehicleJourneys();
       if (journeys != null) {
         for (SituationAffectedVehicleJourneyBean journey : journeys) {
-          if( journey.getLineId() == null)
+          if (journey.getLineId() == null)
             continue;
           RouteBean route = _transitDataService.getRouteForId(journey.getLineId());
           if (route != null)

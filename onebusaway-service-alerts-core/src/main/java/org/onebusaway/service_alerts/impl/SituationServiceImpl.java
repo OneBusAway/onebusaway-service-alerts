@@ -39,7 +39,7 @@ import org.onebusaway.transit_data.model.service_alerts.SituationAffectedCallBea
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedStopBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectedVehicleJourneyBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationAffectsBean;
-import org.onebusaway.transit_data.model.service_alerts.SituationBean;
+import org.onebusaway.transit_data.model.service_alerts.ServiceAlertBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationConditionDetailsBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationConsequenceBean;
 import org.onebusaway.utility.ObjectSerializationLibrary;
@@ -172,7 +172,7 @@ class SituationServiceImpl implements SituationService {
       configuration.setVisible(false);
       configuration.setGroup(new AlertProperties());
 
-      SituationBean situation = new SituationBean();
+      ServiceAlertBean situation = new ServiceAlertBean();
       situation.setId(DEFAULT_SITUATION_ID);
       situation.setCreationTime(System.currentTimeMillis());
       configuration.setSituation(situation);
@@ -194,7 +194,7 @@ class SituationServiceImpl implements SituationService {
     configuration.setVisible(false);
     configuration.setGroup(group);
 
-    SituationBean situation = new SituationBean();
+    ServiceAlertBean situation = new ServiceAlertBean();
     situation.setId(id);
     situation.setCreationTime(t);
     configuration.setSituation(situation);
@@ -240,13 +240,13 @@ class SituationServiceImpl implements SituationService {
 
   @Override
   public SituationConfiguration updateConfigurationDetails(String id,
-      SituationBean situation) {
+      ServiceAlertBean situation) {
 
     SituationConfiguration config = _dao.getConfigurationForId(id);
     if (config == null)
       return null;
 
-    SituationBean model = config.getSituation();
+    ServiceAlertBean model = config.getSituation();
     model.setAdvice(situation.getAdvice());
     model.setDescription(situation.getDescription());
     model.setDetail(situation.getDetail());
@@ -290,7 +290,7 @@ class SituationServiceImpl implements SituationService {
     if (config == null)
       return null;
 
-    SituationBean situation = config.getSituation();
+    ServiceAlertBean situation = config.getSituation();
     SituationAffectsBean affects = getAffectsForSituation(situation);
 
     List<SituationAffectedAgencyBean> agencies = affects.getAgencies();
@@ -336,7 +336,7 @@ class SituationServiceImpl implements SituationService {
     if (stopIds.isEmpty())
       return config;
 
-    SituationBean situation = config.getSituation();
+    ServiceAlertBean situation = config.getSituation();
     SituationAffectsBean affects = getAffectsForSituation(situation);
 
     List<SituationAffectedStopBean> stops = affects.getStops();
@@ -394,7 +394,7 @@ class SituationServiceImpl implements SituationService {
     if (config == null)
       return null;
 
-    SituationBean situation = config.getSituation();
+    ServiceAlertBean situation = config.getSituation();
     SituationAffectsBean affects = getAffectsForSituation(situation);
 
     List<SituationAffectedVehicleJourneyBean> vehicleJourneys = affects.getVehicleJourneys();
@@ -438,7 +438,7 @@ class SituationServiceImpl implements SituationService {
     if (config == null)
       return null;
 
-    SituationBean situation = config.getSituation();
+    ServiceAlertBean situation = config.getSituation();
     SituationAffectsBean affects = getAffectsForSituation(situation);
 
     List<SituationAffectedVehicleJourneyBean> vehicleJourneys = affects.getVehicleJourneys();
@@ -497,7 +497,7 @@ class SituationServiceImpl implements SituationService {
     if (CollectionsLibrary.isEmpty(tripIds))
       return config;
 
-    SituationBean situation = config.getSituation();
+    ServiceAlertBean situation = config.getSituation();
     SituationAffectsBean affects = getAffectsForSituation(situation);
 
     List<SituationAffectedVehicleJourneyBean> vehicleJourneys = affects.getVehicleJourneys();
@@ -579,7 +579,7 @@ class SituationServiceImpl implements SituationService {
     if (config == null)
       return null;
 
-    SituationBean situation = config.getSituation();
+    ServiceAlertBean situation = config.getSituation();
     SituationAffectsBean affects = getAffectsForSituation(situation);
 
     List<SituationAffectedVehicleJourneyBean> vehicleJourneys = affects.getVehicleJourneys();
@@ -631,7 +631,7 @@ class SituationServiceImpl implements SituationService {
     if (config == null)
       return null;
 
-    SituationBean situation = config.getSituation();
+    ServiceAlertBean situation = config.getSituation();
     SituationAffectsBean affects = getAffectsForSituation(situation);
 
     List<SituationAffectedApplicationBean> applications = affects.getApplications();
@@ -674,7 +674,7 @@ class SituationServiceImpl implements SituationService {
     if (config == null)
       return null;
 
-    SituationBean situation = config.getSituation();
+    ServiceAlertBean situation = config.getSituation();
 
     List<SituationConsequenceBean> consequences = situation.getConsequences();
 
@@ -697,7 +697,7 @@ class SituationServiceImpl implements SituationService {
     if (config == null)
       return null;
 
-    SituationBean situation = config.getSituation();
+    ServiceAlertBean situation = config.getSituation();
 
     List<SituationConsequenceBean> consequences = situation.getConsequences();
 
@@ -717,7 +717,7 @@ class SituationServiceImpl implements SituationService {
     if (config == null)
       return null;
 
-    SituationBean situation = config.getSituation();
+    ServiceAlertBean situation = config.getSituation();
 
     List<SituationConsequenceBean> consequences = situation.getConsequences();
 
@@ -733,12 +733,12 @@ class SituationServiceImpl implements SituationService {
    * Private Methods
    ****/
 
-  private SituationAffectsBean getAffectsForSituation(SituationBean situation) {
+  private SituationAffectsBean getAffectsForSituation(ServiceAlertBean situation) {
 
-    SituationAffectsBean affects = situation.getAffects();
+    SituationAffectsBean affects = situation.getAllAffects();
     if (affects == null) {
       affects = new SituationAffectsBean();
-      situation.setAffects(affects);
+      situation.setAllAffects(affects);
     }
     return affects;
   }
@@ -792,7 +792,7 @@ class SituationServiceImpl implements SituationService {
   private PtSituationElementStructure constructSiriSituation(
       SituationConfiguration config) {
 
-    SituationBean situation = config.getSituation();
+    ServiceAlertBean situation = config.getSituation();
 
     PtSituationElementStructure ptSituation = new PtSituationElementStructure();
 
@@ -849,9 +849,9 @@ class SituationServiceImpl implements SituationService {
     return ptSituation;
   }
 
-  private void constructionSiriSituationAffects(SituationBean situation,
+  private void constructionSiriSituationAffects(ServiceAlertBean situation,
       PtSituationElementStructure ptSituation) {
-    SituationAffectsBean affects = situation.getAffects();
+    SituationAffectsBean affects = situation.getAllAffects();
 
     if (affects != null) {
       AffectsScopeStructure sAffects = new AffectsScopeStructure();
@@ -966,7 +966,7 @@ class SituationServiceImpl implements SituationService {
     }
   }
 
-  private void constructSiriSituationConsequences(SituationBean situation,
+  private void constructSiriSituationConsequences(ServiceAlertBean situation,
       PtSituationElementStructure ptSituation) {
     List<SituationConsequenceBean> consequences = situation.getConsequences();
 

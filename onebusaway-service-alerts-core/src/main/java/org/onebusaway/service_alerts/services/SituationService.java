@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.onebusaway.service_alerts.model.SituationConfiguration;
 import org.onebusaway.service_alerts.model.properties.AlertProperties;
-import org.onebusaway.transit_data.model.service_alerts.SituationBean;
+import org.onebusaway.transit_data.model.service_alerts.ServiceAlertBean;
 import org.onebusaway.transit_data.model.service_alerts.SituationConsequenceBean;
 
 public interface SituationService {
@@ -23,7 +23,7 @@ public interface SituationService {
    ****/
 
   public SituationConfiguration updateConfigurationDetails(String id,
-      SituationBean situation);
+      ServiceAlertBean situation);
 
   public SituationConfiguration updateVisibility(String id, boolean visible);
 
