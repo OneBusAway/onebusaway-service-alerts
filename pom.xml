@@ -19,7 +19,7 @@
     <onebusaway-collections-version>1.1.1-SNAPSHOT</onebusaway-collections-version>
     <onebusaway-siri-version>0.1.0-SNAPSHOT</onebusaway-siri-version>
     <spring-version>3.0.3.RELEASE</spring-version>
-    <struts-version>2.1.8.1</struts-version>
+    <struts-version>2.3.35</struts-version>
   </properties>
 
   <scm>
@@ -45,6 +45,16 @@
       </releases>
       <snapshots>
         <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>mvnrepository</id>
+      <url>http://repo.boundlessgeo.com/main/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
       </snapshots>
     </repository>
     <repository>
