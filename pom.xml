@@ -19,7 +19,7 @@
     <onebusaway-collections-version>1.1.1-SNAPSHOT</onebusaway-collections-version>
     <onebusaway-siri-version>0.1.0-SNAPSHOT</onebusaway-siri-version>
     <spring-version>3.0.3.RELEASE</spring-version>
-    <struts-version>2.3.35</struts-version>
+    <struts-version>2.5.22</struts-version>
   </properties>
 
   <scm>
