@@ -38,8 +38,8 @@
 
   <repositories>
     <repository>
-      <id>releases.developer.onebusaway.org</id>
-      <url>http://developer.onebusaway.org/maven/repository/</url>
+      <id>public.onebusaway.org</id>
+      <url>https://repo.camsys-apps.com/releases/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
@@ -48,8 +48,9 @@
       </snapshots>
     </repository>
     <repository>
-      <id>mvnrepository</id>
-      <url>http://repo.boundlessgeo.com/main/</url>
+      <id>osgeo</id>
+      <name>Open Source Geospatial Foundation Repository</name>
+      <url>https://repo.osgeo.org/repository/release/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
