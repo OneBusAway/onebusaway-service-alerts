@@ -5,7 +5,7 @@
   <parent>
     <artifactId>onebusaway</artifactId>
     <groupId>org.onebusaway</groupId>
-    <version>1.1.0</version>
+    <version>1.2.6</version>
   </parent>
   <groupId>org.onebusaway</groupId>
   <artifactId>onebusaway-service-alerts</artifactId>
@@ -15,9 +15,9 @@
   <packaging>pom</packaging>
 
   <properties>
-    <onebusaway-version>0.2.0-SNAPSHOT</onebusaway-version>
-    <onebusaway-collections-version>1.1.1-SNAPSHOT</onebusaway-collections-version>
-    <onebusaway-siri-version>0.1.0-SNAPSHOT</onebusaway-siri-version>
+    <onebusaway-version>0.2.0</onebusaway-version>
+    <onebusaway-collections-version>1.1.1</onebusaway-collections-version>
+    <onebusaway-siri-version>1.0.0</onebusaway-siri-version>
     <spring-version>3.0.3.RELEASE</spring-version>
     <struts-version>2.3.35</struts-version>
   </properties>
@@ -38,8 +38,12 @@
 
   <repositories>
     <repository>
-      <id>releases.developer.onebusaway.org</id>
-      <url>http://developer.onebusaway.org/maven/repository/</url>
+      <id>repo.camsys-apps.com</id>
+      <url>https://repo.camsys-apps.com/third-party/</url>
+    </repository>
+    <repository>
+      <id>releases-camsys-public-repo</id>
+      <url>https://repo.camsys-apps.com/releases/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
@@ -48,18 +52,8 @@
       </snapshots>
     </repository>
     <repository>
-      <id>mvnrepository</id>
-      <url>http://repo.boundlessgeo.com/main/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>snapshots.developer.onebusaway.org</id>
-      <url>http://developer.onebusaway.org/maven/snapshot-repository/</url>
+      <id>snapshots-camsys-public-repo</id>
+      <url>https://repo.camsys-apps.com/snapshots/</url>
       <releases>
         <enabled>false</enabled>
       </releases>
@@ -276,4 +270,21 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>com.mycila</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>2.12</version>
+          <configuration>
+            <excludes combine.children="append">
+              <!-- JQuery Excludes -->
+              <exclude>.github/**</exclude>
+            </excludes>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 </project>
