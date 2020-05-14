@@ -18,7 +18,7 @@
     <onebusaway-version>0.2.0</onebusaway-version>
     <onebusaway-collections-version>1.1.1</onebusaway-collections-version>
     <onebusaway-siri-version>1.0.0</onebusaway-siri-version>
-    <spring-version>3.0.3.RELEASE</spring-version>
+    <spring-version>5.2.6.RELEASE</spring-version>
     <struts-version>2.3.35</struts-version>
   </properties>
 
